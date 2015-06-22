@@ -58,9 +58,9 @@ public class CompanyController {
         companyRepository.delete(company);
     }
 
-    @RequestMapping(value="/list",method=RequestMethod.GET)
+    /*@RequestMapping(value="/list",method=RequestMethod.GET)
     public List<Employee> listEmployee(@RequestParam("company_id")String company_id){
         List<Employee> employeeList = new ArrayList<Employee>();
         employeeList.add(companyRepository.listOfEmployeeByCompanyId())
-    }
+    }*/
 }

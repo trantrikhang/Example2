@@ -31,7 +31,7 @@ public class DemoApplicationTests {
 
 	@Test
 	public void contextLoads() {
-		Employee manager = new Employee();
+		/*Employee manager = new Employee();
 		manager.setName("ABCDEF");
 		manager.setEmployee_id("e01");
 		employeeRepository.save(manager);
@@ -54,7 +54,7 @@ public class DemoApplicationTests {
 				task_child.setTaskParent(task);
 				taskRepository.save(task_child);
 			}
-		}
+		}*/
 	}
 
 }

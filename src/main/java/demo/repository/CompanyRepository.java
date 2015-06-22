@@ -24,5 +24,5 @@ public interface CompanyRepository extends CrudRepository<Company,String>{
 
     @RestResource(exported = false)
     @Query("select employee from Employee employee where employee.company.company_id=?1")
-    List<Employee> listOfEmployeeByCompanyId(String employee_id);
+    List<Employee> listOfEmployeeByCompanyId(String company_id);
 }

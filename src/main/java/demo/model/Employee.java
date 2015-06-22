@@ -1,6 +1,7 @@
 package demo.model;
 
 import javax.persistence.*;
+import java.util.List;
 
 /**
  * Created by Khang on 18/06/2015.
@@ -16,6 +17,8 @@ public class Employee {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "company_id",referencedColumnName = "company_id")
     private Company company;
+
+    private List<Employee> employeeList;
 
     public String getEmployee_id() {
         return employee_id;
@@ -39,5 +42,13 @@ public class Employee {
 
     public void setCompany(Company company) {
         this.company = company;
+    }
+
+    public List<Employee> getEmployeeList() {
+        return employeeList;
+    }
+
+    public void setEmployeeList(List<Employee> employeeList) {
+        this.employeeList = employeeList;
     }
 }
