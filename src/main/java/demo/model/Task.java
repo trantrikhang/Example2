@@ -10,35 +10,36 @@ import java.util.List;
 @Table(name="task")
 public class Task {
     @Id
-    private String task_id;
+    private String taskId;
 
-    private String name;
+    private String taskName;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "project_id",referencedColumnName = "project_id")
+    @JoinColumn(name = "projectId",referencedColumnName = "projectId")
     private Project project;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name="parent_task_id",referencedColumnName = "task_id")
+    @JoinColumn(name="parentTaskId",referencedColumnName = "taskId")
     private Task taskParent;
 
-    @OneToMany(fetch = FetchType.LAZY,mappedBy = "taskParent",cascade = CascadeType.ALL,targetEntity = Task.class)
+    @Transient
+    @OneToMany(mappedBy = "taskParent")
     private List<Task> taskChild;
 
-    public String getTask_id() {
-        return task_id;
+    public String getTaskId() {
+        return taskId;
     }
 
-    public void setTask_id(String task_id) {
-        this.task_id = task_id;
+    public void setTaskId(String taskId) {
+        this.taskId = taskId;
     }
 
-    public String getName() {
-        return name;
+    public String getTaskName() {
+        return taskName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setTaskName(String taskName) {
+        this.taskName = taskName;
     }
 
     public Project getProject() {
@@ -64,4 +65,5 @@ public class Task {
     public void setTaskChild(List<Task> taskChild) {
         this.taskChild = taskChild;
     }
+
 }

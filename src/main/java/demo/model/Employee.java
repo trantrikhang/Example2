@@ -1,7 +1,6 @@
 package demo.model;
 
 import javax.persistence.*;
-import java.util.List;
 
 /**
  * Created by Khang on 18/06/2015.
@@ -10,30 +9,32 @@ import java.util.List;
 @Table(name = "employee")
 public class Employee {
     @Id
-    private String employee_id;
+    private String employeeId;
 
-    private String name;
+    private String employeName;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "company_id",referencedColumnName = "company_id")
+    @JoinColumn(name = "companyId",referencedColumnName = "companyId")
     private Company company;
 
-    private List<Employee> employeeList;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "projectId",referencedColumnName = "projectId")
+    private Project project;
 
-    public String getEmployee_id() {
-        return employee_id;
+    public String getEmployeeId() {
+        return employeeId;
     }
 
-    public void setEmployee_id(String employee_id) {
-        this.employee_id = employee_id;
+    public void setEmployeeId(String employeeId) {
+        this.employeeId = employeeId;
     }
 
-    public String getName() {
-        return name;
+    public String getEmployeName() {
+        return employeName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setEmployeName(String employeName) {
+        this.employeName = employeName;
     }
 
     public Company getCompany() {
@@ -44,11 +45,12 @@ public class Employee {
         this.company = company;
     }
 
-    public List<Employee> getEmployeeList() {
-        return employeeList;
+    public Project getProject() {
+        return project;
     }
 
-    public void setEmployeeList(List<Employee> employeeList) {
-        this.employeeList = employeeList;
+    public void setProject(Project project) {
+        this.project = project;
     }
+
 }

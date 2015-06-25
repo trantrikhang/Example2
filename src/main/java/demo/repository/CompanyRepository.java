@@ -2,6 +2,7 @@ package demo.repository;
 
 import demo.model.Company;
 import demo.model.Employee;
+import demo.model.Project;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -15,14 +16,19 @@ import java.util.List;
 @RestResource(path ="company")
 public interface CompanyRepository extends CrudRepository<Company,String>{
     @RestResource(exported = false)
-    @Query("select company from Company company where company.name=?1")
-    Company findByName(String name);
+    @Query("select company from company company where company.companyName=?1")
+    Company findByName(String companyName);
 
     @RestResource(exported = false)
-    @Query("select company from Company company where company.name like ?1")
-    List<Company> findLikeName(String name);
+    @Query("select company from company company where company.companyName like ?1")
+    List<Company> findLikeName(String companyName);
 
     @RestResource(exported = false)
-    @Query("select employee from Employee employee where employee.company.company_id=?1")
-    List<Employee> listOfEmployeeByCompanyId(String company_id);
+    @Query("select employee from employee employee where employee.company.companyId=?1")
+    List<Employee> listEmployeeByCompanyId(String companyId);
+
+    @RestResource(exported = false)
+    @Query("select project from project project where project.company_owner.companyId=?1")
+    List<Project> listProjectByCompanyId(String companyId);
+
 }

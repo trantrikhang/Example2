@@ -10,27 +10,32 @@ import java.util.List;
 @Table(name="company")
 public class Company {
     @Id
-    private String company_id;
+    private String companyId;
 
-    private String name;
+    private String companyName;
 
-    @OneToMany(mappedBy = "accountOwner",cascade = CascadeType.ALL,targetEntity = Project.class,fetch = FetchType.LAZY)
+    @Transient
+    @OneToMany(mappedBy = "company")
     private List<Employee> employeeList;
 
-    public String getCompany_id() {
-        return company_id;
+    @Transient
+    @OneToMany(mappedBy = "companyOwner")
+    private List<Project> projectList;
+
+    public String getCompanyId() {
+        return companyId;
     }
 
-    public void setCompany_id(String company_id) {
-        this.company_id = company_id;
+    public void setCompanyId(String companyId) {
+        this.companyId = companyId;
     }
 
-    public String getName() {
-        return name;
+    public String getCompanyName() {
+        return companyName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
     }
 
     public List<Employee> getEmployeeList() {
@@ -40,4 +45,13 @@ public class Company {
     public void setEmployeeList(List<Employee> employeeList) {
         this.employeeList = employeeList;
     }
+
+    public List<Project> getProjectList() {
+        return projectList;
+    }
+
+    public void setProjectList(List<Project> projectList) {
+        this.projectList = projectList;
+    }
+
 }

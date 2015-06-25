@@ -20,41 +20,5 @@ import java.util.List;
 @WebAppConfiguration
 public class DemoApplicationTests {
 
-	@Autowired
-	ProjectRepository projectRepository;
-
-	@Autowired
-	TaskRepository taskRepository;
-
-	@Autowired
-	EmployeeRepository employeeRepository;
-
-	@Test
-	public void contextLoads() {
-		/*Employee manager = new Employee();
-		manager.setName("ABCDEF");
-		manager.setEmployee_id("e01");
-		employeeRepository.save(manager);
-
-		Project project = new Project();
-		project.setName("project ABC");
-		project.setManager_id(manager);
-		projectRepository.save(project);
-
-		for (int j=0;j<3;j++){
-			Task task = new Task();
-			task.setName("task "+j);
-			task.setProject(project);
-			taskRepository.save(task);
-
-			for(int k=0;k<5;k++){
-				Task task_child=new Task();
-				task_child.setName("task child "+k);
-				task_child.setProject(project);
-				task_child.setTaskParent(task);
-				taskRepository.save(task_child);
-			}
-		}*/
-	}
 
 }

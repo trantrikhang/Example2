@@ -1,7 +1,5 @@
 package demo.model;
 
-import org.springframework.context.annotation.EnableLoadTimeWeaving;
-
 import javax.persistence.*;
 import java.util.List;
 
@@ -12,46 +10,74 @@ import java.util.List;
 @Table(name="project")
 public class Project {
     @Id
-    private String project_id;
+    private String projectId;
 
-    private String name;
+    private String projectName;
+
+    private String companyId;
+
+    @Transient
+    @OneToMany(mappedBy = "project")
+    private List<Employee> listEmployeeProject;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "employee_id",referencedColumnName = "employee_id")
-    private Employee manager_id;
+    @JoinColumn(name = "companyId",referencedColumnName = "companyId")
+    private Company companyOwner;
 
-    @OneToMany(mappedBy = "project",cascade = CascadeType.ALL,targetEntity = Task.class,fetch = FetchType.LAZY)
-    private List<Task> listOfTask;
+    @Transient
+    @OneToMany(mappedBy = "project")
+    private List<Task> listTask;
 
-    public String getProject_id() {
-        return project_id;
+    public String getProjectId() {
+        return projectId;
     }
 
-    public void setProject_id(String project_id) {
-        this.project_id = project_id;
+    public void setProjectId(String projectId) {
+        this.projectId = projectId;
     }
 
-    public String getName() {
-        return name;
+    public String getProjectName() {
+        return projectName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
     }
 
-    public Employee getManager_id() {
-        return manager_id;
+    public void setListEmployeeProject(List<Employee> listEmployeeProject) {
+        this.listEmployeeProject = listEmployeeProject;
     }
 
-    public void setManager_id(Employee manager_id) {
-        this.manager_id = manager_id;
+    public List<Task> getListTask() {
+        return listTask;
     }
 
-    public List<Task> getListOfTask() {
-        return listOfTask;
+    public void setListTask(List<Task> listTask) {
+        this.listTask = listTask;
     }
 
-    public void setListOfTask(List<Task> listOfTask) {
-        this.listOfTask = listOfTask;
+
+    public String getCompanyId() {
+        return companyId;
+    }
+
+    public void setCompanyId(String companyId) {
+        this.companyId = companyId;
+    }
+
+
+    public Company getCompanyOwner() {
+        return companyOwner;
+    }
+
+    public void setCompanyOwner(Company companyOwner) {
+        this.companyOwner = companyOwner;
+    }
+
+    public void addEmployeeToProject(Employee employee){
+        this.listEmployeeProject.add(employee);
+    }
+    public  void addTaskToProject(Task task){
+        this.listTask.add(task);
     }
 }
