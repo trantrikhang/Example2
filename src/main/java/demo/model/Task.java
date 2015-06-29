@@ -1,6 +1,9 @@
 package demo.model;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 import java.util.List;
 
 /**
@@ -14,16 +17,11 @@ public class Task {
 
     private String taskName;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "projectId",referencedColumnName = "projectId")
-    private Project project;
+    private String projectId;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name="parentTaskId",referencedColumnName = "taskId")
-    private Task taskParent;
+    private String taskParentId;
 
     @Transient
-    @OneToMany(mappedBy = "taskParent")
     private List<Task> taskChild;
 
     public String getTaskId() {
@@ -42,20 +40,20 @@ public class Task {
         this.taskName = taskName;
     }
 
-    public Project getProject() {
-        return project;
+    public String getProjectId() {
+        return projectId;
     }
 
-    public void setProject(Project project) {
-        this.project = project;
+    public void setProjectId(String projectId) {
+        this.projectId = projectId;
     }
 
-    public Task getTaskParent() {
-        return taskParent;
+    public String getTaskParentId() {
+        return taskParentId;
     }
 
-    public void setTaskParent(Task taskParent) {
-        this.taskParent = taskParent;
+    public void setTaskParentId(String taskParentId) {
+        this.taskParentId = taskParentId;
     }
 
     public List<Task> getTaskChild() {
@@ -65,5 +63,4 @@ public class Task {
     public void setTaskChild(List<Task> taskChild) {
         this.taskChild = taskChild;
     }
-
 }

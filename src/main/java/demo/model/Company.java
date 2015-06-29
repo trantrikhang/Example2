@@ -1,6 +1,9 @@
 package demo.model;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 import java.util.List;
 
 /**
@@ -15,11 +18,9 @@ public class Company {
     private String companyName;
 
     @Transient
-    @OneToMany(mappedBy = "company")
     private List<Employee> employeeList;
 
     @Transient
-    @OneToMany(mappedBy = "companyOwner")
     private List<Project> projectList;
 
     public String getCompanyId() {
@@ -53,5 +54,4 @@ public class Company {
     public void setProjectList(List<Project> projectList) {
         this.projectList = projectList;
     }
-
 }

@@ -1,11 +1,13 @@
 package demo.controller;
 
+import demo.model.Company;
 import demo.model.Employee;
 import demo.model.Project;
 import demo.model.Task;
 import demo.repository.CompanyRepository;
 import demo.repository.EmployeeRepository;
 import demo.repository.ProjectRepository;
+//import demo.repository.TaskRepository;
 import demo.repository.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,63 +37,69 @@ public class ProjectController {
     @Autowired
     TaskRepository taskRepository;
 
-    @RequestMapping(value="/add",method=RequestMethod.POST)
-    public Project addProject(@RequestParam("projectId") String projectId,
-                              @RequestParam("projectName") String projectName){
+    @RequestMapping(value="/addProject",method=RequestMethod.POST)
+    public String addProject(@RequestParam("projectId") String projectId,
+                              @RequestParam("projectName") String projectName,
+                              @RequestParam("companyId")String companyId) {
         Project project=new Project();
         project.setProjectName(projectName);
         project.setProjectId(projectId);
+        if(companyRepository.exists(companyId)) project.setCompanyId(companyId);
+        else return "Wrong companyId";
+
         projectRepository.save(project);
 
-        for(int i=0;i<3;i++){
-            Task task = new Task();
-            task.setTaskName("task " + i);
-            task.setProject(project);
-            taskRepository.save(task);
-
-            for(int j=0;j<3;j++){
-                Task taskChild=new Task();
-                taskChild.setTaskName("task child " + j);
-                taskChild.setProject(project);
-                taskChild.setTaskParent(task);
-                taskRepository.save(taskChild);
-            }
-        }
-        return project;
+        return "Added";
 
     }
-    @RequestMapping(value="/list_all_project",method=RequestMethod.GET)
-    public Project listAllProject(@RequestParam("companyId")String companyId){
-        List<Project> listProject = new ArrayList<Project>();
-        listProject=companyRepository.listProjectByCompanyId(companyId);
-        Integer count = listProject.size();
-        for(int i=0;i<count;i++){
-            return listProject.get(i);
-        }
-        return listProject.get(0);
-    }
-
-    @RequestMapping(value="/add_employee",method=RequestMethod.POST)
-    public Project addEmployeeToProject(@RequestParam("projectId")String projectId,
-                                 @RequestParam("employee")Employee employee){
+    @RequestMapping(value="/view",method=RequestMethod.GET)
+    public Project viewProject(@RequestParam("projectId") String projectId){
         Project project = projectRepository.findOne(projectId);
-        if(project.getCompanyId()==employee.getCompany().getCompanyId()){
-            project.addEmployeeToProject(employee);
-            projectRepository.save(project);
-            employee.setProject(project);
-            employeeRepository.save(employee);
+        project.setListEmployeeProject(employeeRepository.listEmployeeByProjectId(projectId));
+        project.setListTask(taskRepository.listTaskByProjectId(projectId));
+        List<Task> taskList = new ArrayList<Task>();
+        taskList=taskRepository.listTaskByProjectId(projectId);
+        for(Task taskEntry : taskList){
+            taskEntry.setTaskChild(taskRepository.listTaskChildByTaskId(taskEntry.getTaskParentId()));
+            taskRepository.save(taskEntry);
         }
+        projectRepository.save(project);
         return project;
     }
-
-    @RequestMapping(value="/list_employee",method=RequestMethod.POST)
-    public Employee listProjectEmployee(@RequestParam("projectId")String projectId){
-        List<Employee> employeeList = new ArrayList<Employee>();
-        employeeList=projectRepository.getListOfEmployeeById(projectId);
-        int count = employeeList.size();
-        for(int i=0;i<count;i++){
-            return employeeList.get(i);
+    @RequestMapping(value="/listByCompanyId",method=RequestMethod.GET)
+    public  List<Project> listByCompanyId(@RequestParam("companyId")String companyId){
+        List<Project> projectList = new ArrayList<Project>();
+        projectList=projectRepository.listProjectByCompanyId(companyId);
+        for(Project projectEntry : projectList){
+            projectEntry.setListEmployeeProject(employeeRepository.listEmployeeByProjectId(projectEntry.getProjectId()));
+            projectRepository.save(projectEntry);
         }
-        return employeeList.get(0);
+        return projectList;
+    }
+
+    @RequestMapping(value="/listAll",method = RequestMethod.GET)
+    public  List<Project> listAll(){
+        List<Project> projectList = new ArrayList<Project>();
+        projectList = projectRepository.listAllProject();
+        for(Project projectEntry : projectList){
+            viewProject(projectEntry.getProjectId());
+        }
+        return projectList;
+    }
+
+    @RequestMapping(value="/addEmployeeToProject",method=RequestMethod.POST)
+    public String addEmployeeToProject(@RequestParam("projectId")String projectId,
+                                 @RequestParam("employeeId")String employeeId){
+        Project project = projectRepository.findOne(projectId);
+        Employee employee = employeeRepository.findOne(employeeId);
+        if(projectRepository.exists(projectId)) {
+            if (employeeRepository.exists(employeeId)) {
+                if (employee.getProjectId() == null) {
+                    employee.setProjectId(projectId);
+                    employeeRepository.save(employee);
+                } else return "Employee's projectId have already existed";
+            } else return "Wrong employeeId";
+        } else return "Wrong projectId";
+        return "Added";
     }
 }

@@ -1,0 +1,16 @@
+<component name="libraryTable">
+  <library name="org.apache.commons:commons-digester3:3.2" type="repository">
+    <properties maven-id="org.apache.commons:commons-digester3:3.2" />
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/apache/commons/commons-digester3/3.2/commons-digester3-3.2.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/cglib/cglib/2.2.2/cglib-2.2.2.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/asm/asm/3.3.1/asm-3.3.1.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/commons-beanutils/commons-beanutils/1.8.3/commons-beanutils-1.8.3.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/apache/commons/commons-digester3/3.2/commons-digester3-3.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

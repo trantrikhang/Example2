@@ -29,25 +29,20 @@ public class TaskController {
     @Autowired
     TaskRepository taskRepository;
 
-    @RequestMapping(value="/list_task_by_projectId",method=RequestMethod.POST)
-    public Task listTask(@RequestParam("project_id")String projectId){
+    @RequestMapping(value="/listByProjectId",method=RequestMethod.GET)
+    public List<Task> listTask(@RequestParam("projectId")String projectId){
         List<Task> listTask = new ArrayList<Task>();
-        listTask = projectRepository.getListOfTaskById(projectId);
-        Integer count = listTask.size();
-        for(int i=0;i<count;i++){
-            return listTask.get(i);
-        }
-        return listTask.get(0);
+        listTask = taskRepository.listTaskByProjectId(projectId);
+
+        return listTask;
     }
 
-    @RequestMapping(value="/list_task_child_by_taskId",method=RequestMethod.POST)
-    public Task listTaskChild(@RequestParam("taskId")String taskId){
-        List<Task> listTaskChild = new ArrayList<Task>();
-        listTaskChild = taskRepository.getListOfTaskChildById(taskId);
-        Integer count = listTaskChild.size();
-        for(int i=0;i<count;i++){
-            return listTaskChild.get(i);
-        }
-        return listTaskChild.get(0);
+    @RequestMapping(value="/listTaskChildByTaskId",method=RequestMethod.GET)
+    public List<Task> listTaskChild(@RequestParam("taskId")String taskId){
+        List<Task> taskChildList = new ArrayList<Task>();
+        taskChildList = taskRepository.listTaskChildByTaskId(taskId);
+
+        return taskChildList;
     }
+
 }

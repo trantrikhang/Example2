@@ -22,7 +22,7 @@ import java.util.List;
 public class CompanyController {
 
     @Autowired
-   CompanyRepository companyRepository;
+    CompanyRepository companyRepository;
 
     @Autowired
     ProjectRepository projectRepository;
@@ -36,6 +36,20 @@ public class CompanyController {
     @RequestMapping(value ="/view",method= RequestMethod.GET)
     public Company viewCompany(@RequestParam("companyId")String companyId) {
         Company company = companyRepository.findOne(companyId);
+        company.setEmployeeList(employeeRepository.listEmployeeByCompanyId(companyId));
+        company.setProjectList(projectRepository.listProjectByCompanyId(companyId));
+        List<Project> projectList = projectRepository.listProjectByCompanyId(companyId);
+        for(Project projectEntry : projectList){
+            projectEntry.setListEmployeeProject(employeeRepository.listEmployeeByProjectId(projectEntry.getProjectId()));
+            projectRepository.save(projectEntry);
+            List<Task> taskList = taskRepository.listTaskByProjectId(projectEntry.getProjectId());
+            for(Task taskEntry : taskList){
+                taskEntry.setTaskChild(taskRepository.listTaskChildByTaskId(taskEntry.getTaskParentId()));
+                taskRepository.save(taskEntry);
+            }
+        }
+
+        companyRepository.save(company);
         return company;
     }
 
@@ -51,7 +65,7 @@ public class CompanyController {
 
     @RequestMapping(value="/update",method=RequestMethod.PUT)
     public Company updateCompany(@RequestParam("companyId")String companyId,
-                              @RequestParam("companyName")String companyName){
+                                 @RequestParam("companyName")String companyName){
         Company company=companyRepository.findOne(companyId);
         company.setCompanyId(companyId);
         company.setCompanyName(companyName);
@@ -65,16 +79,14 @@ public class CompanyController {
         companyRepository.delete(company);
     }
 
-    @RequestMapping(value="/list_all_project_and_task",method=RequestMethod.GET)
-    public List<Project> listEmployee(@RequestParam("company_id")String company_id){
-        List<Project> projectList= companyRepository.listProjectByCompanyId(company_id);
-        for(Project projectEntry : projectList){
-            projectEntry.setListTask(projectRepository.getListOfTaskById(projectEntry.getProjectId()));
-            for(Task taskEntry : projectEntry.getListTask()){
-                taskEntry.setTaskChild(taskRepository.getListOfTaskChildById(taskEntry.getTaskId()));
-            }
-            projectEntry.setListEmployeeProject(projectRepository.getListOfEmployeeById(projectEntry.getProjectId()));
+    @RequestMapping(value="/listAll",method=RequestMethod.GET)
+    public List<Company> listAllCompany(){
+        List<Company> companyList = new ArrayList<Company>();
+        companyList=companyRepository.listAllCompany();
+        for(Company companyEntry : companyList){
+            viewCompany(companyEntry.getCompanyId());
         }
-        return projectList;
+        return companyList;
     }
+
 }

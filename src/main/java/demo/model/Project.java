@@ -1,6 +1,9 @@
 package demo.model;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 import java.util.List;
 
 /**
@@ -17,15 +20,9 @@ public class Project {
     private String companyId;
 
     @Transient
-    @OneToMany(mappedBy = "project")
     private List<Employee> listEmployeeProject;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "companyId",referencedColumnName = "companyId")
-    private Company companyOwner;
-
     @Transient
-    @OneToMany(mappedBy = "project")
     private List<Task> listTask;
 
     public String getProjectId() {
@@ -44,6 +41,18 @@ public class Project {
         this.projectName = projectName;
     }
 
+    public String getCompanyId() {
+        return companyId;
+    }
+
+    public void setCompanyId(String companyId) {
+        this.companyId = companyId;
+    }
+
+    public List<Employee> getListEmployeeProject() {
+        return listEmployeeProject;
+    }
+
     public void setListEmployeeProject(List<Employee> listEmployeeProject) {
         this.listEmployeeProject = listEmployeeProject;
     }
@@ -54,30 +63,5 @@ public class Project {
 
     public void setListTask(List<Task> listTask) {
         this.listTask = listTask;
-    }
-
-
-    public String getCompanyId() {
-        return companyId;
-    }
-
-    public void setCompanyId(String companyId) {
-        this.companyId = companyId;
-    }
-
-
-    public Company getCompanyOwner() {
-        return companyOwner;
-    }
-
-    public void setCompanyOwner(Company companyOwner) {
-        this.companyOwner = companyOwner;
-    }
-
-    public void addEmployeeToProject(Employee employee){
-        this.listEmployeeProject.add(employee);
-    }
-    public  void addTaskToProject(Task task){
-        this.listTask.add(task);
     }
 }

@@ -1,6 +1,8 @@
 package demo.model;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 /**
  * Created by Khang on 18/06/2015.
@@ -11,15 +13,11 @@ public class Employee {
     @Id
     private String employeeId;
 
-    private String employeName;
+    private String employeeName;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "companyId",referencedColumnName = "companyId")
-    private Company company;
+    private String companyId;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "projectId",referencedColumnName = "projectId")
-    private Project project;
+    private String projectId;
 
     public String getEmployeeId() {
         return employeeId;
@@ -29,28 +27,27 @@ public class Employee {
         this.employeeId = employeeId;
     }
 
-    public String getEmployeName() {
-        return employeName;
+    public String getEmployeeName() {
+        return employeeName;
     }
 
-    public void setEmployeName(String employeName) {
-        this.employeName = employeName;
+    public void setEmployeeName(String employeeName) {
+        this.employeeName = employeeName;
     }
 
-    public Company getCompany() {
-        return company;
+    public String getCompanyId() {
+        return companyId;
     }
 
-    public void setCompany(Company company) {
-        this.company = company;
+    public void setCompanyId(String companyId) {
+        this.companyId = companyId;
     }
 
-    public Project getProject() {
-        return project;
+    public String getProjectId() {
+        return projectId;
     }
 
-    public void setProject(Project project) {
-        this.project = project;
+    public void setProjectId(String projectId) {
+        this.projectId = projectId;
     }
-
 }

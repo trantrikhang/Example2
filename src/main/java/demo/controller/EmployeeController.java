@@ -2,8 +2,10 @@ package demo.controller;
 
 import demo.model.Company;
 import demo.model.Employee;
+import demo.model.Project;
 import demo.repository.CompanyRepository;
 import demo.repository.EmployeeRepository;
+import demo.repository.ProjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -19,15 +21,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/employee")
 public class EmployeeController {
-    private  final EmployeeRepository employeeRepository;
 
     @Autowired
     CompanyRepository companyRepository;
     @Autowired
-
-    public EmployeeController(EmployeeRepository employeeRepository) {
-        this.employeeRepository = employeeRepository;
-    }
+    ProjectRepository projectRepository;
+    @Autowired
+    EmployeeRepository employeeRepository;
 
     @RequestMapping(value ="/view",method= RequestMethod.GET)
     public Employee viewEmployee(@RequestParam("employeeId")String employeeId) {
@@ -36,49 +36,79 @@ public class EmployeeController {
     }
 
     @RequestMapping(value="/add",method=RequestMethod.POST)
-    public Employee addEmployee(@RequestParam("employeeId")String employeeId,
+    public String addEmployee(@RequestParam("employeeId")String employeeId,
                               @RequestParam("employeeName")String employeeName,
-                                @RequestParam("company")Company company){
+                                @RequestParam("companyId")String companyId,
+                                @RequestParam("projectId") String projectId){
         Employee employee = new Employee();
+        Company company = companyRepository.findOne(companyId);
         employee.setEmployeeId(employeeId);
-        employee.setEmployeName(employeeName);
-        employee.setCompany(company);
+        employee.setEmployeeName(employeeName);
+        if(companyRepository.exists(companyId)){
+            employee.setCompanyId(companyId);
+        }
+        else return "Wrong companyId";
+        if(projectRepository.exists(projectId)){
+            employee.setProjectId(projectId);
+        }
+        else return "Wrong projectId";
+
         employeeRepository.save(employee);
-        return employee;
+
+        return "Added";
     }
 
     @RequestMapping(value="/update",method=RequestMethod.PUT)
-    public Employee updateEmployee(@RequestParam("employeeId")String employeeId,
-                                 @RequestParam("employeeName")String employeeName,
-                                   @RequestParam("company")Company company){
+    public String updateEmployee(@RequestParam("employeeId")String employeeId,
+                                   @RequestParam("employeeName")String employeeName,
+                                   @RequestParam("companyId")String companyId,
+                                   @RequestParam("projectId") String projectId){
         Employee employee=employeeRepository.findOne(employeeId);
         employee.setEmployeeId(employeeId);
-        employee.setEmployeName(employeeName);
-        employee.setCompany(company);
+        employee.setEmployeeName(employeeName);
+        if(companyRepository.exists(companyId)){
+            employee.setCompanyId(companyId);
+        }
+        else return "Wrong companyId";
+        if(projectRepository.exists(projectId)){
+            employee.setProjectId(projectId);
+        }
+        else return "Wrong projectId";
+
         employeeRepository.save(employee);
-        return employee;
+
+        return "Updated";
     }
 
-    @RequestMapping(value="/del",method=RequestMethod.DELETE)
-    public String delEmployee(@RequestParam("company_id") String employeeId){
+    /*@RequestMapping(value="/del",method=RequestMethod.DELETE)
+    public String delEmployee(@RequestParam("employeeId") String employeeId){
         Employee employee = employeeRepository.findOne(employeeId);
+        Project project = projectRepository.findOne(employee.getProject().getProjectId());
+
         employeeRepository.delete(employee);
         String msg="deleted";
         System.out.println(msg);
         return msg;
 
-    }
+    }*/
 
-    @RequestMapping(value="/list",method=RequestMethod.GET)
-    public Employee listEmployee(@RequestParam("companyId") String companyId){
+    @RequestMapping(value="/listAll", method=RequestMethod.GET)
+    public List<Employee> listAllEmployee(){
         List<Employee> employeeList = new ArrayList<Employee>();
-        employeeList=companyRepository.listEmployeeByCompanyId(companyId);
-        Integer count = employeeList.size();
-        for(int i=0;i<count;i++){
-            return employeeList.get(i);
-            //System.out.println(employeeList.get(i));
-        }
-        return employeeList.get(0);
+        employeeList=employeeRepository.listAllEmployee();
+        return employeeList;
+    }
+    @RequestMapping(value="/listByCompanyId",method=RequestMethod.GET)
+    public List<Employee> listEmployee(@RequestParam("companyId") String companyId){
+        List<Employee> employeeList = new ArrayList<Employee>();
+        employeeList=employeeRepository.listEmployeeByCompanyId(companyId);
+        return employeeList;
     }
 
+    @RequestMapping(value="/listByProjectId",method=RequestMethod.GET)
+    public List<Employee> listProjectEmployee(@RequestParam("projectId")String projectId){
+        List<Employee> employeeList = new ArrayList<Employee>();
+        employeeList=employeeRepository.listEmployeeByProjectId(projectId);
+        return employeeList;
+    }
 }
