@@ -17,6 +17,8 @@ public class Company {
 
     private String companyName;
 
+    private String ownerId;
+
     @Transient
     private List<Employee> employeeList;
 
@@ -53,5 +55,13 @@ public class Company {
 
     public void setProjectList(List<Project> projectList) {
         this.projectList = projectList;
+    }
+
+    public String getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(String ownerId) {
+        this.ownerId = ownerId;
     }
 }

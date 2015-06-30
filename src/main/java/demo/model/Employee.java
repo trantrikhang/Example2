@@ -15,6 +15,8 @@ public class Employee {
 
     private String employeeName;
 
+    private String employeePassword;
+
     private String companyId;
 
     private String projectId;
@@ -33,6 +35,14 @@ public class Employee {
 
     public void setEmployeeName(String employeeName) {
         this.employeeName = employeeName;
+    }
+
+    public String getEmployeePassword() {
+        return employeePassword;
+    }
+
+    public void setEmployeePassword(String employeePassword) {
+        this.employeePassword = employeePassword;
     }
 
     public String getCompanyId() {

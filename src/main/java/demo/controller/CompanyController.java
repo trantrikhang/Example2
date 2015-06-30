@@ -1,13 +1,7 @@
 package demo.controller;
 
-import demo.model.Company;
-import demo.model.Employee;
-import demo.model.Project;
-import demo.model.Task;
-import demo.repository.CompanyRepository;
-import demo.repository.EmployeeRepository;
-import demo.repository.ProjectRepository;
-import demo.repository.TaskRepository;
+import demo.model.*;
+import demo.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -33,6 +27,22 @@ public class CompanyController {
     @Autowired
     EmployeeRepository employeeRepository;
 
+    @Autowired
+    OwnerRepository ownerRepository;
+
+    @Autowired
+    EmployeeController employeeController;
+
+    @Autowired
+    ProjectController projectController;
+
+    @RequestMapping(value="/login", method=RequestMethod.POST)
+    public Owner getOwner(@RequestParam("ownerId")String ownerId,
+                          @RequestParam("ownerPassword")String ownerPassword){
+        Owner owner = ownerRepository.getOwner(ownerId,ownerPassword);
+        return owner;
+    }
+
     @RequestMapping(value ="/view",method= RequestMethod.GET)
     public Company viewCompany(@RequestParam("companyId")String companyId) {
         Company company = companyRepository.findOne(companyId);
@@ -41,9 +51,9 @@ public class CompanyController {
         List<Project> projectList = projectRepository.listProjectByCompanyId(companyId);
         for(Project projectEntry : projectList){
             projectEntry.setListEmployeeProject(employeeRepository.listEmployeeByProjectId(projectEntry.getProjectId()));
+            projectEntry.setListTask(taskRepository.listTaskByProjectId(projectEntry.getProjectId()));
             projectRepository.save(projectEntry);
-            List<Task> taskList = taskRepository.listTaskByProjectId(projectEntry.getProjectId());
-            for(Task taskEntry : taskList){
+            for(Task taskEntry : projectEntry.getListTask()){
                 taskEntry.setTaskChild(taskRepository.listTaskChildByTaskId(taskEntry.getTaskParentId()));
                 taskRepository.save(taskEntry);
             }
@@ -54,30 +64,68 @@ public class CompanyController {
     }
 
     @RequestMapping(value="/add",method=RequestMethod.POST)
-    public Company addCompany(@RequestParam("companyId")String companyId,
-                              @RequestParam("companyName")String companyName){
-        Company company = new Company();
-        company.setCompanyId(companyId);
-        company.setCompanyName(companyName);
-        companyRepository.save(company);
-        return company;
+    public String addCompany(@RequestParam("companyId")String companyId,
+                              @RequestParam("companyName")String companyName,
+                              @RequestParam("ownerId")String ownerId,
+                              @RequestParam("ownerPassword")String ownerPassword){
+        Owner owner = ownerRepository.getOwner(ownerId,ownerPassword);
+        if(owner==null) return "Wrong Owner's info";
+        else{
+            Company company = new Company();
+            owner = ownerRepository.findOne(ownerId);
+            company.setCompanyId(companyId);
+            company.setCompanyName(companyName);
+            owner.setCompanyId(companyId);
+            companyRepository.save(company);
+            ownerRepository.save(owner);
+            return "Added";
+        }
+
     }
 
     @RequestMapping(value="/update",method=RequestMethod.PUT)
-    public Company updateCompany(@RequestParam("companyId")String companyId,
-                                 @RequestParam("companyName")String companyName){
-        Company company=companyRepository.findOne(companyId);
-        company.setCompanyId(companyId);
-        company.setCompanyName(companyName);
-        companyRepository.save(company);
-        return company;
+    public String updateCompany(@RequestParam("companyId")String companyId,
+                                 @RequestParam("companyName")String companyName,
+                                 @RequestParam("ownerId")String ownerId,
+                                 @RequestParam("ownerPassword")String ownerPassword){
+        Owner owner = ownerRepository.getOwner(ownerId,ownerPassword);
+        if(owner==null) return "Wrong Owner's info";
+        else{
+            Company company = companyRepository.findOne(companyId);
+            owner = ownerRepository.findOne(ownerId);
+            company.setCompanyName(companyName);
+            owner.setCompanyId(companyId);
+            companyRepository.save(company);
+            ownerRepository.save(owner);
+            return "Added";
+        }
     }
 
     @RequestMapping(value="/del",method=RequestMethod.DELETE)
-    public void delCompany(@RequestParam("companyId") String companyId){
-        Company company = companyRepository.findOne(companyId);
-        companyRepository.delete(company);
+    public String delCompany(@RequestParam("companyId") String companyId,
+                           @RequestParam("ownerId")String ownerId,
+                           @RequestParam("ownerPassword")String ownerPassword) {
+        Owner owner = ownerRepository.getOwner(ownerId, ownerPassword);
+        if (owner == null) return "Wrong Owner's info";
+        else {
+            Company company = companyRepository.findOne(companyId);
+            if (owner.getCompanyId() == company.getCompanyId()) {
+                List<Project> projectList = projectRepository.listProjectByCompanyId(companyId);
+                for (int i = 0; i < projectList.size(); i++) {
+                    projectController.delProject(projectList.get(i).getProjectId());
+                }
+                List<Employee> employeeList = employeeRepository.listEmployeeByCompanyId(companyId);
+                for (int j = 0; j < employeeList.size(); j++) {
+                    employeeController.delEmployee(employeeList.get(j).getEmployeeId(), ownerId, ownerPassword);
+                }
+                owner.setCompanyId(null);
+                companyRepository.delete(company);
+                return "Deleted";
+            }
+            else return "Cannot delete this company";
+        }
     }
+
 
     @RequestMapping(value="/listAll",method=RequestMethod.GET)
     public List<Company> listAllCompany(){

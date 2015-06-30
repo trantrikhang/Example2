@@ -15,6 +15,9 @@ public interface EmployeeRepository extends CrudRepository<Employee,String> {
     @Query("select employee from Employee employee")
     List<Employee> listAllEmployee();
 
+    @Query("select employee from Employee employee where employee.employeeId=?1 and employee.employeePassword=?2")
+    Employee getEmployee(String employeeId, String employeePassword);
+
     @RestResource(exported = false)
     @Query("select employee from Employee employee where employee.projectId =?1")
     List<Employee> listEmployeeByProjectId(String projectId);
@@ -23,4 +26,7 @@ public interface EmployeeRepository extends CrudRepository<Employee,String> {
     @Query("select employee from Employee employee where employee.companyId=?1")
     List<Employee> listEmployeeByCompanyId(String companyId);
 
+    @RestResource(exported = false)
+    @Query("select employee from Employee employee where employee.projectId=?1")
+    Employee findEmployeeByProjectId(String projectId);
 }

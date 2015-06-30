@@ -14,9 +14,6 @@ import java.util.List;
  */
 @RestResource(path="project")
 public interface ProjectRepository extends CrudRepository<Project,String> {
-    @RestResource(exported = false)
-    @Query("select project from Project project where project.projectName like ?1")
-    List<Project> listProjectByProjectName(String projectName);
 
     @RestResource(exported = false)
     @Query("select project from Project project where project.companyId=?1")
@@ -25,8 +22,4 @@ public interface ProjectRepository extends CrudRepository<Project,String> {
     @RestResource(exported = false)
     @Query("select project from Project project")
     List<Project> listAllProject();
-
-
-
-
 }
