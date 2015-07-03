@@ -13,12 +13,4 @@ import java.util.List;
  */
 @RestResource(path="task")
 public interface TaskRepository extends CrudRepository<Task,String> {
-    @RestResource(exported = false)
-    @Query("select task from Task task where task.taskParentId =?1")
-    List<Task> listTaskChildByTaskId(String taskId);
-
-    @RestResource(exported = false)
-    @Query("select task from Task task where task.projectId =?1")
-    List<Task> listTaskByProjectId(String projectId);
-
 }

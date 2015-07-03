@@ -14,10 +14,4 @@ import java.util.List;
  */
 @RestResource(path ="company")
 public interface CompanyRepository extends CrudRepository<Company,String>{
-
-    @RestResource(exported = false)
-    @Query("select company from Company company")
-    List<Company> listAllCompany();
-
-
 }

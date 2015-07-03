@@ -9,40 +9,30 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "employee")
-public class Employee {
-    @Id
-    private String employeeId;
-
-    private String employeeName;
-
-    private String employeePassword;
+public class Employee extends People {
 
     private String companyId;
 
     private String projectId;
 
-    public String getEmployeeId() {
-        return employeeId;
+    protected Employee(){}
+
+    public Employee(String id, String name, String password, String salt){
+        super(id,name,password,salt);
+        this.companyId=null;
+        this.projectId=null;
     }
 
-    public void setEmployeeId(String employeeId) {
-        this.employeeId = employeeId;
+    public Employee(String id, String name, String password, String salt, String companyId){
+        super(id,name,password,salt);
+        this.companyId=companyId;
+        this.projectId=null;
     }
 
-    public String getEmployeeName() {
-        return employeeName;
-    }
-
-    public void setEmployeeName(String employeeName) {
-        this.employeeName = employeeName;
-    }
-
-    public String getEmployeePassword() {
-        return employeePassword;
-    }
-
-    public void setEmployeePassword(String employeePassword) {
-        this.employeePassword = employeePassword;
+    public Employee(String id, String name, String password, String salt, String companyId, String projectId){
+        super(id,name,password,salt);
+        this.companyId=companyId;
+        this.projectId=projectId;
     }
 
     public String getCompanyId() {

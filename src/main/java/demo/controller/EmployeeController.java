@@ -1,20 +1,12 @@
 package demo.controller;
 
-import demo.model.Company;
-import demo.model.Employee;
-import demo.model.Owner;
-import demo.model.Project;
-import demo.repository.CompanyRepository;
-import demo.repository.EmployeeRepository;
-import demo.repository.OwnerRepository;
-import demo.repository.ProjectRepository;
+import demo.model.*;
+import demo.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.ArrayList;
+import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.web.bind.annotation.*;
+import javax.servlet.http.HttpSession;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -22,6 +14,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/employee")
+@SessionAttributes({"ownerSession","employeeSession"})
 public class EmployeeController {
 
     @Autowired
@@ -32,117 +25,183 @@ public class EmployeeController {
     EmployeeRepository employeeRepository;
     @Autowired
     OwnerRepository ownerRepository;
-
-    @RequestMapping(value="/employeeLogin", method=RequestMethod.POST)
-    public Employee getEmployee(@RequestParam("employeeId")String employeeId,
-                          @RequestParam("employeePassword")String employeePassword){
-        Employee employee = new Employee();
-        employee=employeeRepository.getEmployee(employeeId,employeePassword);
-        return employee;
-    }
-
-    @RequestMapping(value="/ownerLogin", method=RequestMethod.POST)
-    public Owner getOwner(@RequestParam("ownerId")String ownerId,
-                          @RequestParam("ownerPassword")String ownerPassword){
-        Owner owner = new Owner();
-        owner=ownerRepository.getOwner(ownerId,ownerPassword);
-        return owner;
-    }
+    @Autowired
+    JpaEmployeeRepository jpaEmployeeRepository;
 
     @RequestMapping(value ="/view",method= RequestMethod.GET)
-    public Employee viewEmployee(@RequestParam("employeeId")String employeeId) {
+    public EmployeeReturnValue viewEmployee(@RequestParam("employeeId")String employeeId) {
+        HashMap errorList = new HashMap();
+        EmployeeReturnValue returnValue;
         Employee employee = employeeRepository.findOne(employeeId);
-        return employee;
+        if(employee==null){
+            errorList.put(-601, "employeeId not exist");
+            returnValue = new EmployeeReturnValue((Employee) null, errorList);
+            return returnValue;
+        }
+        else {
+            errorList.put(1, "list successful");
+            returnValue = new EmployeeReturnValue(employee, errorList);
+            return returnValue;
+        }
     }
 
     @RequestMapping(value="/add",method=RequestMethod.POST)
-    public String addEmployee(@RequestParam("employeeId")String employeeId,
+    public EmployeeReturnValue addEmployee(@RequestParam("employeeId")String employeeId,
                               @RequestParam("employeeName")String employeeName,
                               @RequestParam("employeePassword")String employeePassword,
                               @RequestParam("companyId")String companyId,
-                              @RequestParam("projectId") String projectId,
                               @RequestParam("ownerId")String ownerId,
-                              @RequestParam("ownerPassword")String ownerPassword){
-        Owner owner = new Owner();
-        owner = ownerRepository.getOwner(ownerId,ownerPassword);
-        if(owner==null) return "Wrong Owner's info";
+                              HttpSession session) {
+        HashMap errorList = new HashMap();
+        EmployeeReturnValue returnValue;
+        Owner owner = ownerRepository.findOne(ownerId);
+        if(owner==null){
+            errorList.put(-200, "ownerId not exist");
+            returnValue = new EmployeeReturnValue((Employee) null, errorList);
+            return returnValue;
+        }
         else {
-            Employee employee = new Employee();
-            Company company = companyRepository.findOne(companyId);
-            employee.setEmployeeId(employeeId);
-            employee.setEmployeeName(employeeName);
-            employee.setEmployeePassword(employeePassword);
-            if (companyRepository.exists(companyId)) {
-                employee.setCompanyId(companyId);
-            } else return "Wrong companyId";
-            if (projectRepository.exists(projectId)) {
-                employee.setProjectId(projectId);
-            } else return "Wrong projectId";
-
-            employeeRepository.save(employee);
-            return "Added";
+            if (session.getAttribute("ownerSession") == null){
+                errorList.put(-100, "must login first");
+                returnValue = new EmployeeReturnValue((Employee) null, errorList);
+                return returnValue;
+            }
+            else {
+                if (session.getAttribute("ownerSession").equals(owner.getId())) {
+                    String salt = BCrypt.gensalt();
+                    if(employeeRepository.exists(employeeId)){
+                        errorList.put(-602, "employeeId existed");
+                        returnValue = new EmployeeReturnValue((Employee) null, errorList);
+                        return returnValue;
+                    }
+                    else {
+                        if (companyRepository.exists(companyId)) {//companyId phải tồn tại thì mới set được
+                            Employee employee = new Employee(employeeId,employeeName,BCrypt.hashpw(employeePassword, salt),salt,companyId);
+                            employeeRepository.save(employee);
+                            errorList.put(2, "added successful");
+                            returnValue = new EmployeeReturnValue(employee, errorList);
+                            return returnValue;
+                        }
+                        else{
+                            errorList.put(-300, "companyId not existed");
+                            returnValue = new EmployeeReturnValue((Employee) null, errorList);
+                            return returnValue;
+                        }
+                    }
+                }
+                else{
+                    errorList.put(-202, "ownerId not login");
+                    returnValue = new EmployeeReturnValue((Employee) null, errorList);
+                    return returnValue;
+                }
+            }
         }
     }
 
     @RequestMapping(value="/update",method=RequestMethod.PUT)
-    public String updateEmployee(@RequestParam("employeeId")String employeeId,
+    public EmployeeReturnValue updateEmployee(@RequestParam("employeeId")String employeeId,
                                  @RequestParam("employeePassword")String employeePassword,
                                  @RequestParam("employeeName")String employeeName,
                                  @RequestParam("companyId")String companyId,
-                                 @RequestParam("projectId") String projectId){
-        Employee employee = new Employee();
-        employee = getEmployee(employeeId,employeePassword);
-        if(employee==null) return "Wrong Employee's info";
+                                 HttpSession session) {
+        HashMap errorList = new HashMap();
+        EmployeeReturnValue returnValue;
+        Employee employee = employeeRepository.findOne(employeeId);
+        if(employee==null){
+            errorList.put(-200, "ownerId not exist");
+            returnValue = new EmployeeReturnValue((Employee) null, errorList);
+            return returnValue;
+        }
         else {
-            employee = employeeRepository.findOne(employeeId);
-            employee.setEmployeeName(employeeName);
-            if (companyRepository.exists(companyId)) {
-                employee.setCompanyId(companyId);
-            } else return "Wrong companyId";
-            if (projectRepository.exists(projectId)) {
-                employee.setProjectId(projectId);
-            } else return "Wrong projectId";
-
-            employeeRepository.save(employee);
-
-            return "Updated";
+            if (session.getAttribute("employeeSession") == null){
+                errorList.put(-100, "must login first");
+                returnValue = new EmployeeReturnValue((Employee) null, errorList);
+                return returnValue;
+            }
+            else {
+                if (session.getAttribute("employeeSession").equals(employee.getId())) {
+                    String salt = BCrypt.gensalt();
+                    employee.setName(employeeName);
+                    employee.setSalt(salt);
+                    employee.setPassword(BCrypt.hashpw(employeePassword, salt));
+                    if (companyRepository.exists(companyId)) {
+                        employee.setCompanyId(companyId);
+                        employeeRepository.save(employee);
+                        errorList.put(3, "updated successful");
+                        returnValue = new EmployeeReturnValue(employee, errorList);
+                        return returnValue;
+                    }
+                    else {
+                        errorList.put(-300, "companyId not existed");
+                        returnValue = new EmployeeReturnValue((Employee) null, errorList);
+                        return returnValue;
+                    }
+                }
+                else{
+                    errorList.put(-202, "ownerId not login");
+                    returnValue = new EmployeeReturnValue((Employee) null, errorList);
+                    return returnValue;
+                }
+            }
         }
     }
 
     @RequestMapping(value="/del",method=RequestMethod.DELETE)
-    public String delEmployee(@RequestParam("employeeId") String employeeId,
+    public EmployeeReturnValue delEmployee(@RequestParam("employeeId") String employeeId,
                               @RequestParam("ownerId")String ownerId,
-                              @RequestParam("ownerPassword")String ownerPassword){
-        Owner owner = new Owner();
-        owner = ownerRepository.getOwner(ownerId,ownerPassword);
-        if(owner==null) return "Wrong Owner's info";
-        else {
-            Employee employee = employeeRepository.findOne(employeeId);
-            Project project = projectRepository.findOne(employee.getProjectId());
-            employeeRepository.delete(employee);
-            project.setListEmployeeProject(employeeRepository.listEmployeeByProjectId(project.getProjectId()));
-            projectRepository.save(project);
+                              HttpSession session) {
+        HashMap errorList = new HashMap();
+        EmployeeReturnValue returnValue;
+        Owner owner = ownerRepository.findOne(ownerId);
+        if(owner==null){
+            errorList.put(-200, "ownerId not exist");
+            returnValue = new EmployeeReturnValue((Employee) null, errorList);
+            return returnValue;
         }
-        return "Deleted";
+        else {
+            if (session.getAttribute("ownerSession") == null){
+                errorList.put(-100, "must login first");
+                returnValue = new EmployeeReturnValue((Employee) null, errorList);
+                return returnValue;
+            }
+            else {
+                if (session.getAttribute("ownerSession").equals(owner.getId())) {
+                    Employee employee = employeeRepository.findOne(employeeId);
+                    if(employee==null){
+                        errorList.put(-601, "employeeId not exist");
+                        returnValue = new EmployeeReturnValue((Employee) null, errorList);
+                        return returnValue;
+                    }
+                    else {
+                        employeeRepository.delete(employee);
+                        errorList.put(4, "deleted successful");
+                        returnValue = new EmployeeReturnValue(employee, errorList);
+                        return returnValue;
+                    }
+                }
+                else {
+                    errorList.put(-202, "ownerId not login");
+                    returnValue = new EmployeeReturnValue((Employee) null, errorList);
+                    return returnValue;
+                }
+            }
+        }
     }
 
     @RequestMapping(value="/listAll", method=RequestMethod.GET)
-    public List<Employee> listAllEmployee(){
-        List<Employee> employeeList = new ArrayList<Employee>();
-        employeeList=employeeRepository.listAllEmployee();
+    public Iterable<Employee> listAllEmployee(){
+        Iterable<Employee> employeeList = employeeRepository.findAll();
         return employeeList;
     }
     @RequestMapping(value="/listByCompanyId",method=RequestMethod.GET)
-    public List<Employee> listEmployee(@RequestParam("companyId") String companyId){
-        List<Employee> employeeList = new ArrayList<Employee>();
-        employeeList=employeeRepository.listEmployeeByCompanyId(companyId);
+    public List<Employee> listEmployeeByCompanyId(@RequestParam("companyId") String companyId){
+        List<Employee> employeeList = jpaEmployeeRepository.findByCompanyId(companyId);
         return employeeList;
     }
 
     @RequestMapping(value="/listByProjectId",method=RequestMethod.GET)
-    public List<Employee> listProjectEmployee(@RequestParam("projectId")String projectId){
-        List<Employee> employeeList = new ArrayList<Employee>();
-        employeeList=employeeRepository.listEmployeeByProjectId(projectId);
+    public List<Employee> listEmployeeByProjectId(@RequestParam("projectId")String projectId){
+        List<Employee> employeeList = jpaEmployeeRepository.findByProjectId(projectId);
         return employeeList;
     }
 }

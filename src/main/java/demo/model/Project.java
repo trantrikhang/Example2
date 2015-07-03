@@ -11,13 +11,11 @@ import java.util.List;
  */
 @Entity
 @Table(name="project")
-public class Project {
-    @Id
-    private String projectId;
-
-    private String projectName;
+public class Project extends Object{
 
     private String companyId;
+
+    private String projectManagerId;
 
     @Transient
     private List<Employee> listEmployeeProject;
@@ -25,20 +23,12 @@ public class Project {
     @Transient
     private List<Task> listTask;
 
-    public String getProjectId() {
-        return projectId;
-    }
+    protected Project(){}
 
-    public void setProjectId(String projectId) {
-        this.projectId = projectId;
-    }
-
-    public String getProjectName() {
-        return projectName;
-    }
-
-    public void setProjectName(String projectName) {
-        this.projectName = projectName;
+    public Project(String id, String name, String companyId, String projectManagerId){
+        super(id,name);
+        this.setCompanyId(companyId);
+        this.setProjectManagerId(projectManagerId);
     }
 
     public String getCompanyId() {
@@ -63,5 +53,13 @@ public class Project {
 
     public void setListTask(List<Task> listTask) {
         this.listTask = listTask;
+    }
+
+    public String getProjectManagerId() {
+        return projectManagerId;
+    }
+
+    public void setProjectManagerId(String projectManagerId) {
+        this.projectManagerId = projectManagerId;
     }
 }

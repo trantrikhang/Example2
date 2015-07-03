@@ -9,30 +9,20 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name="owner")
-public class Owner {
-    @Id
-    private String ownerId;
-
-    private String ownerName;
-
-    private String ownerPassword;
+public class Owner extends People {
 
     private String companyId;
 
-    public String getOwnerId() {
-        return ownerId;
+    protected Owner(){}
+
+    public Owner(String id, String name, String password, String salt, String companyId){
+        super(id,name,password,salt);
+        this.companyId=companyId;
     }
 
-    public void setOwnerId(String ownerId) {
-        this.ownerId = ownerId;
-    }
-
-    public String getOwnerName() {
-        return ownerName;
-    }
-
-    public void setOwnerName(String ownerName) {
-        this.ownerName = ownerName;
+    public Owner(String id, String name, String password, String salt){
+        super(id,name,password,salt);
+        this.companyId=null;
     }
 
     public String getCompanyId() {
@@ -41,13 +31,5 @@ public class Owner {
 
     public void setCompanyId(String companyId) {
         this.companyId = companyId;
-    }
-
-    public String getOwnerPassword() {
-        return ownerPassword;
-    }
-
-    public void setOwnerPassword(String ownerPassword) {
-        this.ownerPassword = ownerPassword;
     }
 }
