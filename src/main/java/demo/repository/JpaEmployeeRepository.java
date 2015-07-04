@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Created by Khang on 01/07/2015.
  */
-public interface JpaEmployeeRepository extends JpaRepository<Employee,String> {
-    List<Employee> findByProjectId (String projectId);
-    List<Employee> findByCompanyId (String companyId);
+public interface JpaEmployeeRepository extends JpaRepository<Employee,Integer> {
+    List<Employee> findByProjectId (Integer projectId);
+    List<Employee> findByCompanyId (Integer companyId);
 }

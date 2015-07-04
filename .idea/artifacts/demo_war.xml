@@ -3,12 +3,6 @@
     <output-path>$PROJECT_DIR$/target</output-path>
     <root id="archive" name="demo-0.0.1-SNAPSHOT.war">
       <element id="artifact" artifact-name="demo:war exploded" />
-      <element id="directory" name="WEB-INF">
-        <element id="directory" name="lib">
-          <element id="library" level="project" name="org.springframework.security:spring-security-crypto:4.0.1.RELEASE" />
-          <element id="library" level="project" name="spring-security-crypto-3.2.4.RELEASE" />
-        </element>
-      </element>
     </root>
   </artifact>
 </component>

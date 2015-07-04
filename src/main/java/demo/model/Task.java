@@ -1,5 +1,6 @@
 package demo.model;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Transient;
@@ -12,40 +13,42 @@ import java.util.List;
 @Table(name="task")
 public class Task extends Object {
 
-    private String projectId;
+    @Column(name="project_id")
+    private Integer projectId;
 
-    private String taskParentId;
+    @Column(name="task_parent_id")
+    private Integer taskParentId;
 
     @Transient
     private List<Task> taskChild;
 
     protected Task(){}
 
-    public Task(String id, String name, String projectId){
-        super(id,name);
+    public Task(String name, Integer projectId){
+        super(name);
         this.setProjectId(projectId);
         this.setTaskParentId(null);
     }
 
-    public Task(String id, String name, String projectId, String taskParentId){
-        super(id,name);
+    public Task(String name, Integer projectId, Integer taskParentId){
+        super(name);
         this.setProjectId(projectId);
         this.setTaskParentId(taskParentId);
     }
 
-    public String getProjectId() {
+    public Integer getProjectId() {
         return projectId;
     }
 
-    public void setProjectId(String projectId) {
+    public void setProjectId(Integer projectId) {
         this.projectId = projectId;
     }
 
-    public String getTaskParentId() {
+    public Integer getTaskParentId() {
         return taskParentId;
     }
 
-    public void setTaskParentId(String taskParentId) {
+    public void setTaskParentId(Integer taskParentId) {
         this.taskParentId = taskParentId;
     }
 

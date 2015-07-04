@@ -1,5 +1,7 @@
 package demo.controller;
 
+import com.sun.javafx.tk.Toolkit;
+import demo.bean.CompanyReturnValue;
 import demo.model.*;
 import demo.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,154 +35,142 @@ public class CompanyController {
     JpaProjectRepository jpaProjectRepository;
     @Autowired
     JpaTaskRepository jpaTaskRepository;
-
+    @Autowired
+    TaskController taskController;
 
 
     @RequestMapping(value ="/view",method= RequestMethod.GET)
-    public CompanyReturnValue viewCompany(@RequestParam("companyId")String companyId) {
+    public CompanyReturnValue viewCompany(@RequestParam("companyId")Integer companyId) {
         Company company = companyRepository.findOne(companyId);
-        HashMap errorList = new HashMap();
         CompanyReturnValue returnValue;
         if(company==null){
-            errorList.put(-300, "companyId not exist");
-            returnValue = new CompanyReturnValue((Company) null, errorList);
+            returnValue = new CompanyReturnValue(GeneralConstant.RESULT_CODE_COMPANYID_NOT_EXIST);
             return returnValue;
         }
         else {
             //company.setEmployeeList(employeeController.listEmployeeByCompanyId(companyId));
             //company.setProjectList(projectController.listByCompanyId(companyId));
+            employeeController.listEmployeeByCompanyId(companyId);
+            List<Project> projectList = jpaProjectRepository.findByCompanyId(companyId);
+            for(Project projectEntry : projectList){
+                projectController.viewProject(projectEntry.getCompanyId());
+            }
+            projectRepository.save(projectList);
             companyRepository.save(company);
-            errorList.put(1, "list successful");
-            returnValue = new CompanyReturnValue(company, errorList);
+            returnValue = new CompanyReturnValue(GeneralConstant.RESULT_CODE_VALID);
+            returnValue.setCompany(company);
+            returnValue.setCompanyList(null);
             return returnValue;
         }
     }
 
     @RequestMapping(value="/add",method=RequestMethod.POST)
-    public CompanyReturnValue addCompany(@RequestParam("companyId")String companyId,
-                             @RequestParam("companyName")String companyName,
-                             @RequestParam("ownerId")String ownerId,
+    public CompanyReturnValue addCompany(@RequestParam("companyName")String companyName,
+                             @RequestParam("ownerId")Integer ownerId,
                              HttpSession session) {
-        HashMap errorList = new HashMap();
         CompanyReturnValue returnValue;
         Owner owner = ownerRepository.findOne(ownerId);
         Company company = new Company();
         if(owner==null) {
-            errorList.put(-200, "ownerId not exist");
-            returnValue = new CompanyReturnValue((Company) null, errorList);
+            returnValue = new CompanyReturnValue(GeneralConstant.RESULT_CODE_OWNERID_NOT_EXIST);
             return returnValue;
         }
         else {
             if (session.getAttribute("ownerSession") == null){
-                errorList.put(-100, "must login first");
-                returnValue = new CompanyReturnValue((Company) null, errorList);
+                returnValue = new CompanyReturnValue(GeneralConstant.RESULT_CODE_NOT_LOGIN);
                 return returnValue;
             }//session null > chưa login
             else {
-                if (session.getAttribute("ownerSession").equals(owner.getId())) {//ownerId vừa nhập nếu trùng với ownerId trong session thì cho phép thực thi
-                    if (owner.getCompanyId() != null){
-                        errorList.put(-201, "Owner only can own 1 company");
-                        returnValue = new CompanyReturnValue((Company) null, errorList);
+                Owner ownerSession = (Owner) session.getAttribute("ownerSession");
+                if (ownerSession.getId().equals(owner.getId())) {//ownerId vừa nhập nếu trùng với ownerId trong session thì cho phép thực thi
+                    if (owner.getCompanyId() != null) {
+                        returnValue = new CompanyReturnValue(GeneralConstant.RESULT_CODE_OWNER_ONLY_OWN_1_COMPANY);
                         return returnValue;
                     }//mỗi tài khoản owner chỉ được phép tạo 1 company
                     else {
-                        if (companyRepository.exists(companyId)){
-                            errorList.put(-300, "companyId existed");
-                            returnValue = new CompanyReturnValue((Company) null, errorList);
-                            return returnValue;
-                        }//companyId không được trùng với cái sẵn có
-                        else {
-                            company.setCompanyId(companyId);
-                            company.setCompanyName(companyName);
-                            company.setOwnerId(ownerId);
-                            owner.setCompanyId(companyId);
-                            companyRepository.save(company);
-                            ownerRepository.save(owner);
-                            errorList.put(2, "added successful");
-                            returnValue = new CompanyReturnValue(company, errorList);
-                            return returnValue;
-                        }
+                        company.setName(companyName);
+                        company.setOwnerId(ownerId);
+                        companyRepository.save(company);
+                        owner.setCompanyId(company.getId());
+                        ownerRepository.save(owner);
+                        returnValue = new CompanyReturnValue(GeneralConstant.RESULT_CODE_VALID);
+                        returnValue.setCompany(company);
+                        returnValue.setCompanyList(null);
+                        return returnValue;
                     }
                 } else{
-                    errorList.put(-202, "ownerId not login");
-                    returnValue = new CompanyReturnValue((Company) null, errorList);
+                    returnValue = new CompanyReturnValue(GeneralConstant.RESULT_CODE_OWNERID_NOT_LOGIN);
                     return returnValue;
                 }
             }
         }
     }
-    @RequestMapping(value="/update",method=RequestMethod.PUT)
-    public CompanyReturnValue updateCompany(@RequestParam("companyId")String companyId,
+    @RequestMapping(value="/update",method=RequestMethod.POST)
+    public CompanyReturnValue updateCompany(@RequestParam("companyId")Integer companyId,
                                 @RequestParam("companyName")String companyName,
-                                @RequestParam("ownerId")String ownerId,
+                                @RequestParam("ownerId")Integer ownerId,
                                 HttpSession session) {
-        HashMap errorList = new HashMap();
         CompanyReturnValue returnValue;
         Owner owner = ownerRepository.findOne(ownerId);
         if(owner==null){
-            errorList.put(-200, "ownerId not exist");
-            returnValue = new CompanyReturnValue((Company) null, errorList);
+            returnValue = new CompanyReturnValue(GeneralConstant.RESULT_CODE_OWNERID_NOT_EXIST);
             return returnValue;
         }
         else {
             if (session.getAttribute("ownerSession") == null){
-                errorList.put(-100, "must login first");
-                returnValue = new CompanyReturnValue((Company) null, errorList);
+                returnValue = new CompanyReturnValue(GeneralConstant.RESULT_CODE_NOT_LOGIN);
                 return returnValue;
             }
             else {
-                if (session.getAttribute("ownerSession").equals(owner.getId())) {
+                Owner ownerSession = (Owner) session.getAttribute("ownerSession");
+                if (ownerSession.getId().equals(owner.getId())) {
                     Company company = companyRepository.findOne(companyId);
                     if (company == null){
-                        errorList.put(-300, "companyId existed");
-                        returnValue = new CompanyReturnValue((Company) null, errorList);
+                        returnValue = new CompanyReturnValue(GeneralConstant.RESULT_CODE_COMPANYID_EXISTED);
                         return returnValue;
                     }//company không tồn tại
                     else {
-                        company.setCompanyName(companyName);
+                        company.setName(companyName);
                         company.setOwnerId(ownerId);
                         owner.setCompanyId(companyId);
                         companyRepository.save(company);
                         ownerRepository.save(owner);
-                        errorList.put(3, "updated successful");
-                        returnValue = new CompanyReturnValue(company, errorList);
+                        returnValue = new CompanyReturnValue(GeneralConstant.RESULT_CODE_VALID);
+                        returnValue.setCompany(company);
+                        returnValue.setCompanyList(null);
                         return returnValue;
                     }
                 } else{
-                    errorList.put(-202, "ownerId not login");
-                    returnValue = new CompanyReturnValue((Company) null, errorList);
+                    returnValue = new CompanyReturnValue(GeneralConstant.RESULT_CODE_OWNERID_NOT_LOGIN);
                     return returnValue;
                 }
             }
         }
     }
 
-    @RequestMapping(value="/del",method=RequestMethod.DELETE)
-    public CompanyReturnValue delCompany(@RequestParam("companyId") String companyId,
-                             @RequestParam("ownerId")String ownerId,
+    @RequestMapping(value="/del",method=RequestMethod.POST)
+    public CompanyReturnValue delCompany(@RequestParam("companyId") Integer companyId,
+                             @RequestParam("ownerId")Integer ownerId,
                              HttpSession session) {
         Owner owner = ownerRepository.findOne(ownerId);
-        HashMap errorList = new HashMap();
-        CompanyReturnValue returnValue = new CompanyReturnValue();
+        CompanyReturnValue returnValue;
         if (owner == null) {
-            errorList.put(-200, "ownerId not exist");
-            returnValue = new CompanyReturnValue((Company) null, errorList);
+            returnValue = new CompanyReturnValue(GeneralConstant.RESULT_CODE_OWNERID_NOT_EXIST);
             return returnValue;
         }
         else {
             if (session.getAttribute("ownerSession") == null) {
-                errorList.put(-100, "must login first");
-                returnValue = new CompanyReturnValue((Company) null, errorList);
+                returnValue = new CompanyReturnValue(GeneralConstant.RESULT_CODE_NOT_LOGIN);
                 return returnValue;
             } else {
-                if (session.getAttribute("ownerSession").equals(owner.getId())) {
+                Owner ownerSession = (Owner) session.getAttribute("ownerSession");
+                if (ownerSession.getId().equals(owner.getId())) {
                     Company company = companyRepository.findOne(companyId);
                     if (company == null) {
-                        errorList.put(-300, "companyId not existed");
-                        returnValue = new CompanyReturnValue((Company) null, errorList);
+                        returnValue = new CompanyReturnValue(GeneralConstant.RESULT_CODE_COMPANYID_NOT_EXIST);
                         return returnValue;
                     } else {
-                        if (owner.getCompanyId().equals(company.getCompanyId())) {
+                        if (owner.getCompanyId().equals(company.getId())) {
                             List<Project> projectList = jpaProjectRepository.findByCompanyId(companyId);
                             if (projectList != null) {
                                 for (int i = 0; i < projectList.size(); i++) {
@@ -192,18 +182,24 @@ public class CompanyController {
                                                 for (int k = 0; k < taskChildList.size(); k++) {
                                                     taskRepository.delete(taskChildList.get(k));
                                                 }
-                                            } else {
-                                                errorList.put(-500, "taskChildList is empty");
+                                            }
+                                            else {
+                                                returnValue = new CompanyReturnValue(GeneralConstant.RESULT_CODE_TASKCHILDLIST_EMPTY);
+                                                return returnValue;
                                             }
                                             taskRepository.delete(taskList.get(j));
                                         }
-                                    } else {
-                                        errorList.put(-501, "taskList is empty");
+                                    }
+                                    else {
+                                        returnValue = new CompanyReturnValue(GeneralConstant.RESULT_CODE_TASKLIST_EMPTY);
+                                        return returnValue;
                                     }
                                     projectRepository.delete(projectList.get(i));
                                 }
-                            } else {
-                                errorList.put(-400, "projectList is empty");
+                            }
+                            else {
+                                returnValue = new CompanyReturnValue(GeneralConstant.RESULT_CODE_PROJECTLIST_EMPTY);
+                                return returnValue;
                             }
                             List<Employee> employeeList = jpaEmployeeRepository.findByCompanyId(companyId);
                             if (employeeList != null) {
@@ -212,24 +208,22 @@ public class CompanyController {
                                     employeeRepository.save(employeeList.get(i));
                                 }
                             } else {
-                                errorList.put(-600, "employeeList is empty");
-                                returnValue = new CompanyReturnValue((Company) null, errorList);
+                                returnValue = new CompanyReturnValue(GeneralConstant.RESULT_CODE_EMPLOYEELIST_EMPTY);
                                 return returnValue;
                             }
                             owner.setCompanyId(null);
                             companyRepository.delete(company);
-                            errorList.put(4, "deleted successful");
-                            returnValue = new CompanyReturnValue(company, errorList);
+                            returnValue = new CompanyReturnValue(GeneralConstant.RESULT_CODE_VALID);
+                            returnValue.setCompany(null);
+                            returnValue.setCompanyList(null);
                             return returnValue;
                         } else {
-                            errorList.put(-203, "ownerId not own this company");
-                            returnValue = new CompanyReturnValue((Company) null, errorList);
+                            returnValue = new CompanyReturnValue(GeneralConstant.RESULT_CODE_OWNERID_NOT_OWN_THIS_COMPANY);
                             return returnValue;
                         }
                     }
                 } else {
-                    errorList.put(-202, "ownerId not login");
-                    returnValue = new CompanyReturnValue((Company) null, errorList);
+                    returnValue = new CompanyReturnValue(GeneralConstant.RESULT_CODE_OWNERID_NOT_LOGIN);
                     return returnValue;
                 }
             }
@@ -237,24 +231,25 @@ public class CompanyController {
     }
 
     @RequestMapping(value="/listAll",method=RequestMethod.GET)
-    public Iterable<Company> listAllCompany(){
-//        HashMap errorList = new HashMap();
-//        CompanyReturnValue returnValue;
-        Iterable<Company> companyList = companyRepository.findAll();
-//        if(companyList==null){
-//            errorList.put(-302, "companyList is empty");
-//            returnValue = new CompanyReturnValue((Iterable<Company>) null, errorList);
-//            return returnValue;
-//        }
-//        else {
+    public CompanyReturnValue listAllCompany(){
+        CompanyReturnValue returnValue;
+        List<Company> companyList = (List<Company>) companyRepository.findAll();
+        if(companyList==null){
+            returnValue = new CompanyReturnValue(GeneralConstant.RESULT_CODE_COMPANYLIST_EMPTY);
+            returnValue.setCompany(null);
+            returnValue.setCompanyList(null);
+            return returnValue;
+        }
+        else {
             for (Company companyEntry : companyList) {
-                viewCompany(companyEntry.getCompanyId());
+                viewCompany(companyEntry.getId());
             }
-//            errorList.put(1, "list successful");
-//            returnValue = new CompanyReturnValue(companyList, errorList);
-//            return returnValue;
-//        }
-        return companyList;
+            companyRepository.save(companyList);
+            returnValue = new CompanyReturnValue(GeneralConstant.RESULT_CODE_VALID);
+            returnValue.setCompanyList(companyList);
+            returnValue.setCompany(null);
+            return returnValue;
+        }
     }
 
 }

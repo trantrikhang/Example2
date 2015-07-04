@@ -1,5 +1,6 @@
 package demo.model;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -11,25 +12,26 @@ import javax.persistence.Table;
 @Table(name="owner")
 public class Owner extends People {
 
-    private String companyId;
+    @Column(name="company_id")
+    private Integer companyId;
 
     protected Owner(){}
 
-    public Owner(String id, String name, String password, String salt, String companyId){
-        super(id,name,password,salt);
+    public Owner(String name, String password, Integer companyId){
+        super(name,password);
         this.companyId=companyId;
     }
 
-    public Owner(String id, String name, String password, String salt){
-        super(id,name,password,salt);
+    public Owner(String name, String password){
+        super(name,password);
         this.companyId=null;
     }
 
-    public String getCompanyId() {
+    public Integer getCompanyId() {
         return companyId;
     }
 
-    public void setCompanyId(String companyId) {
+    public void setCompanyId(Integer companyId) {
         this.companyId = companyId;
     }
 }

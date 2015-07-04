@@ -1,5 +1,7 @@
 package demo.model;
 
+import org.hibernate.annotations.GenericGenerator;
+
 import javax.persistence.*;
 import javax.persistence.Id;
 import javax.persistence.Entity;
@@ -13,29 +15,30 @@ import javax.persistence.InheritanceType;
 public abstract class People {
 
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.TABLE,generator = "table")
+    @GenericGenerator(name = "table",strategy = "enhanced-table",parameters = {@org.hibernate.annotations.Parameter(name="table_name",value = "sequence_table")})
+    @Column(name="id")
+    private Integer id;
 
+    @Column(name="name")
     private String name;
 
+    @Column(name="password")
     private String password;
-
-    private String salt;
 
     protected People(){
     }
 
-    public People(String id, String name, String password, String salt){
-        this.id = id;
+    public People(String name, String password){
         this.name = name;
         this.password = password;
-        this.salt = salt;
     }
 
-    public String getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -55,11 +58,4 @@ public abstract class People {
         this.password = password;
     }
 
-    public String getSalt() {
-        return salt;
-    }
-
-    public void setSalt(String salt) {
-        this.salt = salt;
-    }
 }

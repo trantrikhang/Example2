@@ -8,6 +8,6 @@ import java.util.List;
 /**
  * Created by Khang on 01/07/2015.
  */
-public interface JpaProjectRepository extends JpaRepository<Project,String> {
-    List<Project> findByCompanyId (String companyId);
+public interface JpaProjectRepository extends JpaRepository<Project,Integer> {
+    List<Project> findByCompanyId (Integer companyId);
 }

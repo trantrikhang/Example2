@@ -1,9 +1,6 @@
 package demo.model;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import java.util.List;
 
 /**
@@ -13,11 +10,15 @@ import java.util.List;
 @Table(name="company")
 public class Company {
     @Id
-    private String companyId;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name="id")
+    private Integer id;
 
-    private String companyName;
+    @Column(name="company_name")
+    private String name;
 
-    private String ownerId;
+    @Column(name="owner_id")
+    private Integer ownerId;
 
     @Transient
     private List<Employee> employeeList;
@@ -25,20 +26,28 @@ public class Company {
     @Transient
     private List<Project> projectList;
 
-    public String getCompanyId() {
-        return companyId;
+    public Integer getId() {
+        return id;
     }
 
-    public void setCompanyId(String companyId) {
-        this.companyId = companyId;
+    public void setId(Integer id) {
+        this.id = id;
     }
 
-    public String getCompanyName() {
-        return companyName;
+    public String getName() {
+        return name;
     }
 
-    public void setCompanyName(String companyName) {
-        this.companyName = companyName;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Integer getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(Integer ownerId) {
+        this.ownerId = ownerId;
     }
 
     public List<Employee> getEmployeeList() {
@@ -55,13 +64,5 @@ public class Company {
 
     public void setProjectList(List<Project> projectList) {
         this.projectList = projectList;
-    }
-
-    public String getOwnerId() {
-        return ownerId;
-    }
-
-    public void setOwnerId(String ownerId) {
-        this.ownerId = ownerId;
     }
 }

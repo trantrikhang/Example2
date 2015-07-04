@@ -1,5 +1,6 @@
 package demo.controller;
 
+import demo.bean.TaskReturnValue;
 import demo.model.*;
 import demo.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,60 +30,46 @@ public class TaskController {
     JpaTaskRepository jpaTaskRepository;
 
     @RequestMapping(value="/addTaskToProject",method=RequestMethod.POST)
-    public TaskReturnValue addTaskToProject(@RequestParam("taskId")String taskId,
-                                   @RequestParam("taskName")String taskName,
-                                   @RequestParam("projectId")String projectId,
-                                   @RequestParam("employeeId")String employeeId,
+    public TaskReturnValue addTaskToProject(@RequestParam("taskName")String taskName,
+                                   @RequestParam("projectId")Integer projectId,
+                                   @RequestParam("employeeId")Integer employeeId,
                                    HttpSession session) {
-        HashMap errorList = new HashMap();
         TaskReturnValue returnValue;
         Employee employee = employeeRepository.findOne(employeeId);
         if(employee==null){
-            errorList.put(-601, "employeeId not exist");
-            returnValue = new TaskReturnValue((Task)null, errorList);
+            returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_EMPLOYEEID_NOT_EXIST);
             return returnValue;
         }
         else {
             if (session.getAttribute("employeeSession") == null) {
-                errorList.put(-100, "must login first");
-                returnValue = new TaskReturnValue((Task)null, errorList);
+                returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_NOT_LOGIN);
                 return returnValue;
             }
             else {
-                if (session.getAttribute("employeeSession").equals(employee.getId())) {
+                Employee employeeSession = (Employee) session.getAttribute("employeeSession");
+                if (employeeSession.getId().equals(employee.getId())) {
                     Project project = projectRepository.findOne(projectId);
-                    if(project==null){
-                        errorList.put(-403, "projectId not exist");
-                        returnValue = new TaskReturnValue((Task)null, errorList);
+                    if (project == null) {
+                        returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_PROJECTID_NOT_EXIST);
                         return returnValue;
-                    }
-                    else {
-                        if(taskRepository.exists(taskId)){
-                            errorList.put(-502, "taskId existed");
-                            returnValue = new TaskReturnValue((Task)null, errorList);
+                    } else {
+                        if (projectRepository.exists(projectId)) {
+                            Task task = new Task(taskName, projectId);
+                            taskRepository.save(task);
+                            project.setListTask(jpaTaskRepository.findByProjectIdAndTaskParentIdIsNull(projectId));
+                            projectRepository.save(project);
+                            returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_VALID);
+                            returnValue.setTask(task);
+                            returnValue.setTaskList(null);
                             return returnValue;
-                        }
-                        else {
-                            if(projectRepository.exists(projectId)) {
-                                Task task = new Task(taskId,taskName,projectId);
-                                taskRepository.save(task);
-                                project.setListTask(jpaTaskRepository.findByProjectIdAndTaskParentIdIsNull(projectId));
-                                projectRepository.save(project);
-                                errorList.put(2, "added successful");
-                                returnValue = new TaskReturnValue((Task)task, errorList);
-                                return returnValue;
-                            }
-                            else {
-                                errorList.put(-403, "projectId not exist");
-                                returnValue = new TaskReturnValue((Task)null, errorList);
-                                return returnValue;
-                            }
+                        } else {
+                            returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_PROJECTID_NOT_EXIST);
+                            return returnValue;
                         }
                     }
                 }
                 else {
-                    errorList.put(-605, "employeeId not login");
-                    returnValue = new TaskReturnValue((Task)null, errorList);
+                    returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_NOT_LOGIN);
                     return returnValue;
                 }
             }
@@ -90,61 +77,47 @@ public class TaskController {
     }
 
     @RequestMapping(value="/addTaskChildToTask",method=RequestMethod.POST)
-    public TaskReturnValue addTaskChildToTask(@RequestParam("taskChildId")String taskChildId,
-                                     @RequestParam("taskChildName")String taskChildName,
-                                     @RequestParam("projectId")String projectId,
-                                     @RequestParam("taskParentId")String taskParentId,
-                                     @RequestParam("employeeId")String employeeId,
+    public TaskReturnValue addTaskChildToTask(@RequestParam("taskChildName")String taskChildName,
+                                     @RequestParam("projectId")Integer projectId,
+                                     @RequestParam("taskParentId")Integer taskParentId,
+                                     @RequestParam("employeeId")Integer employeeId,
                                      HttpSession session) {
-        HashMap errorList = new HashMap();
         TaskReturnValue returnValue;
         Employee employee = employeeRepository.findOne(employeeId);
         if(employee==null){
-            errorList.put(-601, "employeeId not exist");
-            returnValue = new TaskReturnValue((Task)null, errorList);
+            returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_EMPLOYEEID_NOT_EXIST);
             return returnValue;
         }
         else {
             if (session.getAttribute("employeeSession") == null){
-                errorList.put(-100, "must login first");
-                returnValue = new TaskReturnValue((Task)null, errorList);
+                returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_NOT_LOGIN);
                 return returnValue;
             }
             else {
-                if (session.getAttribute("employeeSession").equals(employee.getId())) {
+                Employee employeeSession = (Employee) session.getAttribute("employeeSession");
+                if (employeeSession.getId().equals(employee.getId())) {
                     Task taskParent = taskRepository.findOne(taskParentId);
-                    if(taskParent==null){
-                        errorList.put(-503, "taskParentId not exist");
-                        returnValue = new TaskReturnValue((Task)null, errorList);
+                    if (taskParent == null) {
+                        returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_TASKPARENTID_NOT_EXIST);
                         return returnValue;
-                    }
-                    else {
-                        if(taskRepository.exists(taskChildId)){
-                            errorList.put(-504, "taskChildId existed");
-                            returnValue = new TaskReturnValue((Task)null, errorList);
+                    } else {
+                        if (projectRepository.exists(projectId)) {
+                            Task taskChild = new Task(taskChildName, projectId, taskParentId);
+                            taskRepository.save(taskChild);
+                            taskParent.setTaskChild(jpaTaskRepository.findByTaskParentId(taskParentId));
+                            taskRepository.save(taskParent);
+                            returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_VALID);
+                            returnValue.setTask(taskChild);
+                            returnValue.setTaskList(null);
                             return returnValue;
-                        }
-                        else {
-                            if(projectRepository.exists(projectId)) {
-                                Task taskChild = new Task(taskChildId,taskChildName,projectId,taskParentId);
-                                taskRepository.save(taskChild);
-                                taskParent.setTaskChild(jpaTaskRepository.findByTaskParentId(taskParentId));
-                                taskRepository.save(taskParent);
-                                errorList.put(2, "added successful");
-                                returnValue = new TaskReturnValue((Task)taskChild, errorList);
-                                return returnValue;
-                            }
-                            else{
-                                errorList.put(-403, "projectId not exist");
-                                returnValue = new TaskReturnValue((Task)null, errorList);
-                                return returnValue;
-                            }
+                        } else {
+                            returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_PROJECTID_NOT_EXIST);
+                            return returnValue;
                         }
                     }
                 }
                 else{
-                    errorList.put(-605, "employeeId not login");
-                    returnValue = new TaskReturnValue((Task)null, errorList);
+                    returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_NOT_LOGIN);
                     return returnValue;
                 }
             }
@@ -152,151 +125,122 @@ public class TaskController {
     }
 
     @RequestMapping(value="/update",method=RequestMethod.POST)
-    public TaskReturnValue updateTask(@RequestParam("taskId")String taskId,
+    public TaskReturnValue updateTask(@RequestParam("taskId")Integer taskId,
                              @RequestParam("taskName")String taskName,
-                             @RequestParam("employeeId")String employeeId,
+                             @RequestParam("employeeId")Integer employeeId,
                              HttpSession session) {
-        HashMap errorList = new HashMap();
         TaskReturnValue returnValue;
         Employee employee = employeeRepository.findOne(employeeId);
         if(employee==null){
-            errorList.put(-601, "employeeId not exist");
-            returnValue = new TaskReturnValue((Task)null, errorList);
+            returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_EMPLOYEEID_NOT_EXIST);
             return returnValue;
         }
         else {
             if (session.getAttribute("employeeSession") == null) {
-                errorList.put(-100, "must login first");
-                returnValue = new TaskReturnValue((Task)null, errorList);
+                returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_NOT_LOGIN);
                 return returnValue;
             }
             else {
-                if (session.getAttribute("employeeSession").equals(employee.getId())) {
+                Employee employeeSession = (Employee) session.getAttribute("employeeSession");
+                if (employeeSession.getId().equals(employee.getId())) {
                     Task task = taskRepository.findOne(taskId);
                     if(task==null){
-                        errorList.put(-502, "taskId existed");
-                        returnValue = new TaskReturnValue((Task)null, errorList);
+                        returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_TASKID_EXISTED);
                         return returnValue;
                     }
                     else {
                         task.setName(taskName);
                         taskRepository.save(task);
-                        errorList.put(2, "updated successful");
-                        returnValue = new TaskReturnValue((Task)task, errorList);
+                        returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_VALID);
+                        returnValue.setTask(task);
+                        returnValue.setTaskList(null);
                         return returnValue;
                     }
                 }
                 else {
-                    errorList.put(-605, "employeeId not login");
-                    returnValue = new TaskReturnValue((Task)null, errorList);
+                    returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_NOT_LOGIN);
                     return returnValue;
                 }
             }
         }
     }
 
-    @RequestMapping(value="/listByProjectId",method=RequestMethod.GET)
-    public List<Task> listTask(@RequestParam("projectId")String projectId){
-        List<Task> listTask = jpaTaskRepository.findByProjectIdAndTaskParentIdIsNull(projectId);
-        for(int i=0;i<listTask.size();i++){
-            listTask.get(i).setTaskChild(jpaTaskRepository.findByTaskParentId(listTask.get(i).getId()));
-            taskRepository.save(listTask.get(i));
-        }
-        taskRepository.save(listTask);
-        return listTask;
-    }
-
-    @RequestMapping(value="/listTaskChildByTaskId",method=RequestMethod.GET)
-    public List<Task> listTaskChild(@RequestParam("taskId")String taskId){
-        List<Task> taskChildList = jpaTaskRepository.findByTaskParentId(taskId);
-        taskRepository.save(taskChildList);
-        return taskChildList;
-    }
-
-    @RequestMapping(value="/delTaskChild", method=RequestMethod.DELETE)
-    public TaskReturnValue delTaskChild(@RequestParam("taskChildId")String taskChildId,
-                             @RequestParam("employeeId")String employeeId,
+    @RequestMapping(value="/delTaskChild", method=RequestMethod.POST)
+    public TaskReturnValue delTaskChild(@RequestParam("taskChildId")Integer taskChildId,
+                             @RequestParam("employeeId")Integer employeeId,
                              HttpSession session) {
-        HashMap errorList = new HashMap();
         TaskReturnValue returnValue;
         Employee employee = employeeRepository.findOne(employeeId);
         if(employee==null){
-            errorList.put(-601, "employeeId not exist");
-            returnValue = new TaskReturnValue((Task)null, errorList);
+            returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_EMPLOYEEID_NOT_EXIST);
             return returnValue;
         }
         else {
             if (session.getAttribute("employeeSession") == null){
-                errorList.put(-100, "must login first");
-                returnValue = new TaskReturnValue((Task)null, errorList);
+                returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_NOT_LOGIN);
                 return returnValue;
             }
             else {
-                if (session.getAttribute("employeeSession").equals(employeeId)) {
+                Employee employeeSession = (Employee) session.getAttribute("employeeSession");
+                if (employeeSession.getId().equals(employeeId)) {
                     Task taskChild = taskRepository.findOne(taskChildId);
                     if(taskChild==null){
-                        errorList.put(-505, "taskChildId not exist");
-                        returnValue = new TaskReturnValue((Task)null, errorList);
+                        returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_TASKCHILDID_NOT_EXIST);
                         return returnValue;
                     }
                     else {
                         Task taskParent = taskRepository.findOne(taskChild.getTaskParentId());
                         if(taskParent==null){
-                            errorList.put(-506, "taskParentId not exist");
-                            returnValue = new TaskReturnValue((Task)null, errorList);
+                            returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_TASKPARENTID_NOT_EXIST);
                             return returnValue;
                         }
                         else {
                             taskRepository.delete(taskChild);
                             taskParent.setTaskChild(jpaTaskRepository.findByTaskParentId(taskParent.getId()));
                             taskRepository.save(taskParent);
-                            errorList.put(4, "deleted successful");
-                            returnValue = new TaskReturnValue((Task)taskChild, errorList);
+                            returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_VALID);
+                            returnValue.setTask(null);
+                            returnValue.setTaskList(null);
                             return returnValue;
                         }
                     }
                 }
                 else{
-                    errorList.put(-605, "employeeId not login");
-                    returnValue = new TaskReturnValue((Task)null, errorList);
+                    returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_NOT_LOGIN);
                     return returnValue;
                 }
             }
         }
     }
 
-    @RequestMapping(value="/delTask", method = RequestMethod.DELETE)
-    public TaskReturnValue delTask(@RequestParam("taskId")String taskId,
-                        @RequestParam("employeeId")String employeeId,
+    @RequestMapping(value="/delTask", method = RequestMethod.POST)
+    public TaskReturnValue delTask(@RequestParam("taskId")Integer taskId,
+                        @RequestParam("employeeId")Integer employeeId,
                         HttpSession session) {
-        HashMap errorList = new HashMap();
         TaskReturnValue returnValue;
         Employee employee = employeeRepository.findOne(employeeId);
         if (employee == null) {
-            errorList.put(-601, "employeeId not exist");
-            returnValue = new TaskReturnValue((Task) null, errorList);
+            returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_EMPLOYEEID_NOT_EXIST);
             return returnValue;
         }
         else {
             if (session.getAttribute("employeeSession") == null) {
-                errorList.put(-100, "must login first");
-                returnValue = new TaskReturnValue((Task) null, errorList);
+                returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_NOT_LOGIN);
                 return returnValue;
             }
             else {
-                if (session.getAttribute("employeeSession").equals(employeeId)) {
+                Employee employeeSession = (Employee) session.getAttribute("employeeSession");
+                if (employeeSession.getId().equals(employeeId)) {
                     Task task = taskRepository.findOne(taskId);
                     if (task == null) {
-                        errorList.put(-507, "taskId not exist");
-                        returnValue = new TaskReturnValue((Task) null, errorList);
+                        returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_TASKID_NOT_EXIST);
                         return returnValue;
                     }
                     else {
                         Project project = projectRepository.findOne(task.getProjectId());
                         List<Task> taskChildList = jpaTaskRepository.findByTaskParentId(taskId);
                         if (taskChildList == null) {
-                            errorList.put(-500, "taskChild is empty");
-                            returnValue = new TaskReturnValue((Task) null, errorList);
+                            returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_TASKCHILDLIST_EMPTY);
                             return returnValue;
                         }
                         else {
@@ -307,18 +251,56 @@ public class TaskController {
                             taskRepository.delete(task);
                             project.setListTask(jpaTaskRepository.findByProjectIdAndTaskParentIdIsNull(project.getId()));
                             projectRepository.save(project);
-                            errorList.put(4, "deleted successful");
-                            returnValue = new TaskReturnValue((Task) task, errorList);
+                            returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_VALID);
+                            returnValue.setTask(null);
+                            returnValue.setTaskList(null);
                             return returnValue;
                         }
                     }
                 }
                 else {
-                    errorList.put(-605, "employeeId not login");
-                    returnValue = new TaskReturnValue((Task) null, errorList);
+                    returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_NOT_LOGIN);
                     return returnValue;
                 }
             }
+        }
+    }
+
+    @RequestMapping(value="/listByProjectId",method=RequestMethod.GET)
+    public TaskReturnValue listTask(@RequestParam("projectId")Integer projectId){
+        TaskReturnValue returnValue;
+        List<Task> taskList = jpaTaskRepository.findByProjectIdAndTaskParentIdIsNull(projectId);
+        if(taskList==null) {
+            returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_TASKCHILDLIST_EMPTY);
+            return returnValue;
+        }
+        else {
+            for (int i = 0; i < taskList.size(); i++) {
+                taskList.get(i).setTaskChild(jpaTaskRepository.findByTaskParentId(taskList.get(i).getId()));
+                taskRepository.save(taskList.get(i));
+            }
+            taskRepository.save(taskList);
+            returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_VALID);
+            returnValue.setTaskList(taskList);
+            returnValue.setTask(null);
+            return returnValue;
+        }
+    }
+
+    @RequestMapping(value="/listTaskChildByTaskId",method=RequestMethod.GET)
+    public TaskReturnValue listTaskChild(@RequestParam("taskId")Integer taskId){
+        TaskReturnValue returnValue;
+        List<Task> taskChildList = jpaTaskRepository.findByTaskParentId(taskId);
+        if(taskChildList==null) {
+            returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_TASKCHILDLIST_EMPTY);
+            return returnValue;
+        }
+        else {
+            taskRepository.save(taskChildList);
+            returnValue = new TaskReturnValue(GeneralConstant.RESULT_CODE_VALID);
+            returnValue.setTaskList(taskChildList);
+            returnValue.setTask(null);
+            return returnValue;
         }
     }
 }

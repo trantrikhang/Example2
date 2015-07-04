@@ -1,10 +1,8 @@
 package demo.model;
 
-import javax.persistence.Id;
+import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.Entity;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
+import javax.persistence.*;
 
 /**
  * Created by Khang on 02/07/2015.
@@ -14,22 +12,25 @@ import javax.persistence.InheritanceType;
 public abstract class Object {
 
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.TABLE,generator = "table")
+    @GenericGenerator(name = "table",strategy = "enhanced-table",parameters = {@org.hibernate.annotations.Parameter(name="table_name",value = "sequence_table")})
+    @Column(name="id")
+    private Integer id;
 
+    @Column(name="name")
     private String name;
 
     protected Object(){}
 
-    public Object(String id, String name){
-        this.id = id;
+    public Object(String name){
         this.name = name;
     }
 
-    public String getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

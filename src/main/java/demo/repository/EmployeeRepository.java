@@ -11,5 +11,5 @@ import java.util.List;
  * Created by Khang on 18/06/2015.
  */
 
-public interface EmployeeRepository extends CrudRepository<Employee,String> {
+public interface EmployeeRepository extends CrudRepository<Employee,Integer> {
 }

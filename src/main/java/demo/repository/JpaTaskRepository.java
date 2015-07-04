@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Created by Khang on 01/07/2015.
  */
-public interface JpaTaskRepository extends JpaRepository<Task,String> {
-    List<Task> findByTaskParentId (String taskId);
-    List<Task> findByProjectIdAndTaskParentIdIsNull (String projectId);
+public interface JpaTaskRepository extends JpaRepository<Task,Integer> {
+    List<Task> findByTaskParentId (Integer taskId);
+    List<Task> findByProjectIdAndTaskParentIdIsNull (Integer projectId);
 }

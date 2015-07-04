@@ -1,9 +1,6 @@
 package demo.model;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import java.util.List;
 
 /**
@@ -13,9 +10,11 @@ import java.util.List;
 @Table(name="project")
 public class Project extends Object{
 
-    private String companyId;
+    @Column(name="company_id")
+    private Integer companyId;
 
-    private String projectManagerId;
+    @Column(name="project_manager_id")
+    private Integer projectManagerId;
 
     @Transient
     private List<Employee> listEmployeeProject;
@@ -25,18 +24,26 @@ public class Project extends Object{
 
     protected Project(){}
 
-    public Project(String id, String name, String companyId, String projectManagerId){
-        super(id,name);
+    public Project(String name, Integer companyId, Integer projectManagerId){
+        super(name);
         this.setCompanyId(companyId);
         this.setProjectManagerId(projectManagerId);
     }
 
-    public String getCompanyId() {
+    public Integer getCompanyId() {
         return companyId;
     }
 
-    public void setCompanyId(String companyId) {
+    public void setCompanyId(Integer companyId) {
         this.companyId = companyId;
+    }
+
+    public Integer getProjectManagerId() {
+        return projectManagerId;
+    }
+
+    public void setProjectManagerId(Integer projectManagerId) {
+        this.projectManagerId = projectManagerId;
     }
 
     public List<Employee> getListEmployeeProject() {
@@ -53,13 +60,5 @@ public class Project extends Object{
 
     public void setListTask(List<Task> listTask) {
         this.listTask = listTask;
-    }
-
-    public String getProjectManagerId() {
-        return projectManagerId;
-    }
-
-    public void setProjectManagerId(String projectManagerId) {
-        this.projectManagerId = projectManagerId;
     }
 }

@@ -13,5 +13,5 @@ import java.util.List;
  * Created by Khang on 26/06/2015.
  */
 @RestResource(path="project")
-public interface ProjectRepository extends CrudRepository<Project,String> {
+public interface ProjectRepository extends CrudRepository<Project,Integer> {
 }

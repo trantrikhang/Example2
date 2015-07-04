@@ -12,5 +12,5 @@ import java.util.List;
  * Created by Khang on 18/06/2015.
  */
 @RestResource(path="task")
-public interface TaskRepository extends CrudRepository<Task,String> {
+public interface TaskRepository extends CrudRepository<Task,Integer> {
 }
