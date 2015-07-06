@@ -2,39 +2,38 @@ package demo.bean;
 
 import demo.model.Company;
 
-import java.util.HashMap;
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * Created by Khang on 02/07/2015.
  */
-public class CompanyReturnValue extends BasicReturnValue{
+public class CompanyReturnValue extends BeanRootReturnValue implements Serializable {
 
-    private Company company;
-
-    private List<Company> companyList;
+    private BeanCompanyData bean;
 
     public CompanyReturnValue(){};
 
     public CompanyReturnValue(int resultCode){
         super(resultCode);
-        this.setCompany(company);
-        this.setCompanyList(companyList);
+        bean = new BeanCompanyData("Company Item");
     }
 
-    public Company getCompany() {
-        return company;
+    public CompanyReturnValue(Company company,int resultCode){
+        super(resultCode);
+        bean = new BeanCompanyData("Company Item", company);
     }
 
-    public void setCompany(Company company) {
-        this.company = company;
+    public CompanyReturnValue(List<Company> companyList,int resultCode){
+        super(resultCode);
+        bean = new BeanCompanyData("Company List", companyList);
     }
 
-    public List<Company> getCompanyList() {
-        return companyList;
+    public BeanCompanyData getBean() {
+        return bean;
     }
 
-    public void setCompanyList(List<Company> companyList) {
-        this.companyList = companyList;
+    public void setBean(BeanCompanyData bean) {
+        this.bean = bean;
     }
 }

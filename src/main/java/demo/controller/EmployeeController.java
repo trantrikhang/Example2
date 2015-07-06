@@ -1,5 +1,6 @@
 package demo.controller;
 
+import demo.bean.CompanyReturnValue;
 import demo.bean.EmployeeReturnValue;
 import demo.bean.TaskReturnValue;
 import demo.model.*;
@@ -31,93 +32,132 @@ public class EmployeeController {
     JpaEmployeeRepository jpaEmployeeRepository;
 
     @RequestMapping(value = "/view", method = RequestMethod.GET)
-    public EmployeeReturnValue viewEmployee(@RequestParam("employeeId") Integer employeeId) {
-
+    public EmployeeReturnValue viewEmployee(@RequestParam("employeeId") String employeeIdInput) {
         EmployeeReturnValue returnValue;
-        Employee employee = employeeRepository.findOne(employeeId);
-        if (employee == null) {
-            returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_EMPLOYEEID_NOT_EXIST);
+        if(employeeIdInput.isEmpty()){
+            returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_EMPLOYEEID_EMPTY);
             return returnValue;
-        } else {
-            returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_VALID);
-            return returnValue;
+        }
+        else {
+            int employeeId = Integer.parseInt(employeeIdInput);
+            Employee employee = employeeRepository.findOne(employeeId);
+            if (employee == null) {
+                returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_EMPLOYEEID_NOT_EXIST);
+                return returnValue;
+            } else {
+                returnValue = new EmployeeReturnValue(employee, GeneralConstant.RESULT_CODE_VALID);
+                return returnValue;
+            }
         }
     }
 
     @RequestMapping(value = "/add", method = RequestMethod.POST)
     public EmployeeReturnValue addEmployee(@RequestParam("employeeName") String employeeName,
                                            @RequestParam("employeePassword") String employeePassword,
-                                           @RequestParam("companyId") Integer companyId,
-                                           @RequestParam("ownerId") Integer ownerId,
+                                           @RequestParam("companyId") String companyIdInput,
+                                           @RequestParam("ownerId") String ownerIdInput,
                                            HttpSession session) {
         EmployeeReturnValue returnValue;
-        Owner owner = ownerRepository.findOne(ownerId);
-        if (owner == null) {
-            returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_OWNERID_NOT_EXIST);
+        if(companyIdInput.isEmpty()){
+            returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_COMPANYID_EMPTY);
             return returnValue;
-        } else {
-            if (session.getAttribute("ownerSession") == null) {
-                returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_NOT_LOGIN);
+        }
+        else
+        if(ownerIdInput.isEmpty()){
+            returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_OWNERID_EMPTY);
+            return returnValue;
+        }
+        else {
+            int ownerId = Integer.parseInt(ownerIdInput);
+            int companyId = Integer.parseInt(companyIdInput);
+            employeeName = employeeName.trim();
+            Owner owner = ownerRepository.findOne(ownerId);
+            if (owner == null) {
+                returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_OWNERID_NOT_EXIST);
                 return returnValue;
             } else {
-                Owner ownerSession = (Owner) session.getAttribute("ownerSession");
-                if (ownerSession.getId().equals(owner.getId())) {
-                    String salt = BCrypt.gensalt();
-
-                    if (companyRepository.exists(companyId)) {//companyId phải tồn tại thì mới set được
-                        Employee employee = new Employee(employeeName, BCrypt.hashpw(employeePassword, salt), companyId);
-                        employeeRepository.save(employee);
-                        returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_VALID);
-                        returnValue.setEmployee(employee);
-                        returnValue.setEmployeeList(null);
-                        return returnValue;
+                if (session.getAttribute("ownerSession") == null) {
+                    returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_NOT_LOGIN);
+                    return returnValue;
+                } else {
+                    Owner ownerSession = (Owner) session.getAttribute("ownerSession");
+                    if (ownerSession.getId().equals(owner.getId())) {
+                        String salt = BCrypt.gensalt();
+                        if (companyRepository.exists(companyId)) {//companyId phải tồn tại thì mới set được
+                            if (employeeName.isEmpty()) {
+                                returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_EMPLOYEENAME_EMPTY);
+                                return returnValue;
+                            } else {
+                                Employee employee = new Employee(employeeName, BCrypt.hashpw(employeePassword, salt), companyId);
+                                employeeRepository.save(employee);
+                                returnValue = new EmployeeReturnValue(employee, GeneralConstant.RESULT_CODE_VALID);
+                                return returnValue;
+                            }
+                        } else {
+                            returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_COMPANYID_NOT_EXIST);
+                            return returnValue;
+                        }
                     } else {
-                        returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_COMPANYID_NOT_EXIST);
+                        returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_OWNERID_NOT_LOGIN);
                         return returnValue;
                     }
-                } else {
-                    returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_OWNERID_NOT_LOGIN);
-                    return returnValue;
                 }
             }
         }
     }
 
     @RequestMapping(value = "/update", method = RequestMethod.POST)
-    public EmployeeReturnValue updateEmployee(@RequestParam("employeeId") Integer employeeId,
+    public EmployeeReturnValue updateEmployee(@RequestParam("employeeId") String employeeIdInput,
                                               @RequestParam("employeePassword") String employeePassword,
                                               @RequestParam("employeeName") String employeeName,
-                                              @RequestParam("companyId") Integer companyId,
+                                              @RequestParam("companyId") String companyIdInput,
                                               HttpSession session) {
         EmployeeReturnValue returnValue;
-        Employee employee = employeeRepository.findOne(employeeId);
-        if (employee == null) {
-            returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_OWNERID_NOT_EXIST);
+        if(companyIdInput.isEmpty()){
+            returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_COMPANYID_EMPTY);
             return returnValue;
-        } else {
-            if (session.getAttribute("employeeSession") == null) {
-                returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_NOT_LOGIN);
+        }
+        else
+        if(employeeIdInput.isEmpty()){
+            returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_EMPLOYEEID_EMPTY);
+            return returnValue;
+        }
+        else {
+            int companyId = Integer.parseInt(companyIdInput);
+            int employeeId = Integer.parseInt(employeeIdInput);
+            employeeName = employeeName.trim();
+            Employee employee = employeeRepository.findOne(employeeId);
+            if (employee == null) {
+                returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_OWNERID_NOT_EXIST);
                 return returnValue;
             } else {
-                Employee employeeSession = (Employee) session.getAttribute("employeeSession");
-                if (employeeSession.getId().equals(employee.getId())) {
-                    String salt = BCrypt.gensalt();
-                    employee.setName(employeeName);
-                    employee.setPassword(BCrypt.hashpw(employeePassword, salt));
-                    if (companyRepository.exists(companyId)) {
-                        employee.setCompanyId(companyId);
-                        employeeRepository.save(employee);
-                        returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_VALID);
-                        returnValue.setEmployee(employee);
-                        returnValue.setEmployeeList(null);
-                        return returnValue;
-                    } else {
-                        returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_COMPANYID_NOT_EXIST);
-                        return returnValue;
-                    }
-                } else
-                    returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_OWNERID_NOT_LOGIN);
-                return returnValue;
+                if (session.getAttribute("employeeSession") == null) {
+                    returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_NOT_LOGIN);
+                    return returnValue;
+                } else {
+                    Employee employeeSession = (Employee) session.getAttribute("employeeSession");
+                    if (employeeSession.getId().equals(employee.getId())) {
+                        String salt = BCrypt.gensalt();
+                        employee.setName(employeeName);
+                        employee.setPassword(BCrypt.hashpw(employeePassword, salt));
+                        if (companyRepository.exists(companyId)) {
+                            if (employeeName.isEmpty()) {
+                                returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_EMPLOYEENAME_EMPTY);
+                                return returnValue;
+                            } else {
+                                employee.setCompanyId(companyId);
+                                employeeRepository.save(employee);
+                                returnValue = new EmployeeReturnValue(employee, GeneralConstant.RESULT_CODE_VALID);
+                                return returnValue;
+                            }
+                        } else {
+                            returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_COMPANYID_NOT_EXIST);
+                            return returnValue;
+                        }
+                    } else
+                        returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_OWNERID_NOT_LOGIN);
+                    return returnValue;
+                }
             }
         }
     }
@@ -125,39 +165,46 @@ public class EmployeeController {
 
 
     @RequestMapping(value="/del",method=RequestMethod.POST)
-    public EmployeeReturnValue delEmployee(@RequestParam("employeeId") Integer employeeId,
-                              @RequestParam("ownerId")Integer ownerId,
+    public EmployeeReturnValue delEmployee(@RequestParam("employeeId") String employeeIdInput,
+                              @RequestParam("ownerId")String ownerIdInput,
                               HttpSession session) {
         EmployeeReturnValue returnValue;
-        Owner owner = ownerRepository.findOne(ownerId);
-        if(owner==null){
-            returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_OWNERID_NOT_EXIST);
+        if(employeeIdInput.isEmpty()){
+            returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_EMPLOYEEID_EMPTY);
+            return returnValue;
+        }
+        else
+        if(ownerIdInput.isEmpty()){
+            returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_OWNERID_EMPTY);
             return returnValue;
         }
         else {
-            if (session.getAttribute("ownerSession") == null){
-                returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_NOT_LOGIN);
+            int ownerId = Integer.parseInt(ownerIdInput);
+            int employeeId = Integer.parseInt(employeeIdInput);
+            Owner owner = ownerRepository.findOne(ownerId);
+            if (owner == null) {
+                returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_OWNERID_NOT_EXIST);
                 return returnValue;
-            }
-            else {
-                Owner ownerSession = (Owner) session.getAttribute("ownerSession");
-                if (ownerSession.getId().equals(owner.getId())) {
-                    Employee employee = employeeRepository.findOne(employeeId);
-                    if(employee==null){
-                        returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_EMPLOYEEID_NOT_EXIST);
-                        return returnValue;
-                    }
-                    else {
-                        employeeRepository.delete(employee);
-                        returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_VALID);
-                        returnValue.setEmployee(null);
-                        returnValue.setEmployeeList(null);
-                        return returnValue;
-                    }
-                }
-                else {
-                    returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_OWNERID_NOT_LOGIN);
+            } else {
+                if (session.getAttribute("ownerSession") == null) {
+                    returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_NOT_LOGIN);
                     return returnValue;
+                } else {
+                    Owner ownerSession = (Owner) session.getAttribute("ownerSession");
+                    if (ownerSession.getId().equals(owner.getId())) {
+                        Employee employee = employeeRepository.findOne(employeeId);
+                        if (employee == null) {
+                            returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_EMPLOYEEID_NOT_EXIST);
+                            return returnValue;
+                        } else {
+                            employeeRepository.delete(employee);
+                            returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_VALID);
+                            return returnValue;
+                        }
+                    } else {
+                        returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_OWNERID_NOT_LOGIN);
+                        return returnValue;
+                    }
                 }
             }
         }
@@ -168,49 +215,53 @@ public class EmployeeController {
         EmployeeReturnValue returnValue;
         List<Employee> employeeList = (List<Employee>) employeeRepository.findAll();
         if(employeeList==null) {
-            returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_EMPLOYEELIST_EMPTY);
-            returnValue.setEmployee(null);
+            returnValue = new EmployeeReturnValue(employeeList,GeneralConstant.RESULT_CODE_EMPLOYEELIST_EMPTY);
             return returnValue;
         }
         else {
             employeeRepository.save(employeeList);
-            returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_VALID);
-            returnValue.setEmployeeList(employeeList);
-            returnValue.setEmployee(null);
+            returnValue = new EmployeeReturnValue(employeeList,GeneralConstant.RESULT_CODE_VALID);
             return returnValue;
         }
     }
     @RequestMapping(value="/listByCompanyId",method=RequestMethod.GET)
-    public EmployeeReturnValue listEmployeeByCompanyId(@RequestParam("companyId") Integer companyId){
+    public EmployeeReturnValue listEmployeeByCompanyId(@RequestParam("companyId") String companyIdInput){
         EmployeeReturnValue returnValue;
-        List<Employee> employeeList = jpaEmployeeRepository.findByCompanyId(companyId);
-        if(employeeList==null) {
-            returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_EMPLOYEELIST_EMPTY);
+        if(companyIdInput.isEmpty()){
+            returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_COMPANYID_EMPTY);
             return returnValue;
         }
         else {
-            employeeRepository.save(employeeList);
-            returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_VALID);
-            returnValue.setEmployeeList(employeeList);
-            returnValue.setEmployee(null);
-            return returnValue;
+            int companyId = Integer.parseInt(companyIdInput);
+            List<Employee> employeeList = jpaEmployeeRepository.findByCompanyId(companyId);
+            if (employeeList == null) {
+                returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_EMPLOYEELIST_EMPTY);
+                return returnValue;
+            } else {
+                employeeRepository.save(employeeList);
+                returnValue = new EmployeeReturnValue(employeeList, GeneralConstant.RESULT_CODE_VALID);
+                return returnValue;
+            }
         }
     }
 
     @RequestMapping(value="/listByProjectId",method=RequestMethod.GET)
-    public EmployeeReturnValue listEmployeeByProjectId(@RequestParam("projectId")Integer projectId){
+    public EmployeeReturnValue listEmployeeByProjectId(@RequestParam("projectId")String projectIdInput) {
         EmployeeReturnValue returnValue;
-        List<Employee> employeeList = jpaEmployeeRepository.findByProjectId(projectId);
-        if(employeeList==null) {
-            returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_EMPLOYEELIST_EMPTY);
+        if (projectIdInput.isEmpty()) {
+            returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_PROJECTID_EMPTY);
             return returnValue;
-        }
-        else {
-            employeeRepository.save(employeeList);
-            returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_VALID);
-            returnValue.setEmployeeList(employeeList);
-            returnValue.setEmployee(null);
-            return returnValue;
+        } else {
+            int projectId = Integer.parseInt(projectIdInput);
+            List<Employee> employeeList = jpaEmployeeRepository.findByProjectId(projectId);
+            if (employeeList == null) {
+                returnValue = new EmployeeReturnValue(GeneralConstant.RESULT_CODE_EMPLOYEELIST_EMPTY);
+                return returnValue;
+            } else {
+                employeeRepository.save(employeeList);
+                returnValue = new EmployeeReturnValue(employeeList, GeneralConstant.RESULT_CODE_VALID);
+                return returnValue;
+            }
         }
     }
 }

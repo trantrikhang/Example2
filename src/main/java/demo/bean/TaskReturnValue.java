@@ -2,37 +2,37 @@ package demo.bean;
 
 import demo.model.Task;
 
-import java.util.HashMap;
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * Created by Khang on 02/07/2015.
  */
-public class TaskReturnValue extends BasicReturnValue {
-    private Task task;
+public class TaskReturnValue extends BeanRootReturnValue implements Serializable {
+    private BeanTaskData bean;
 
-    private List<Task> taskList;
     public TaskReturnValue(){};
 
     public TaskReturnValue(int resultCode){
         super(resultCode);
-        this.setTask(task);
-        this.setTaskList(taskList);
+        bean = new BeanTaskData("Task Item");
     }
 
-    public Task getTask() {
-        return task;
+    public TaskReturnValue(Task task,int resultCode){
+        super(resultCode);
+        bean = new BeanTaskData("Task Item", task);
     }
 
-    public void setTask(Task task) {
-        this.task = task;
+    public TaskReturnValue(List<Task> taskList,int resultCode){
+        super(resultCode);
+        bean = new BeanTaskData("Task List", taskList);
     }
 
-    public List<Task> getTaskList() {
-        return taskList;
+    public BeanTaskData getBean() {
+        return bean;
     }
 
-    public void setTaskList(List<Task> taskList) {
-        this.taskList = taskList;
+    public void setBean(BeanTaskData bean) {
+        this.bean = bean;
     }
 }
